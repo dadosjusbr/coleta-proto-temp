@@ -9,18 +9,12 @@ import (
 
 const (
 	baseURL          = "http://pitagoras.mppb.mp.br/PTMP/"
-	tipoEstagiarios  = "estagiarios"
 	tipoIndenizacoes = "indenizacoes"
 )
 
 var (
 	tipos = map[string]int{
-		"membrosAtivos":         1,
-		"membrosInativos":       2,
-		"servidoresAtivos":      3,
-		"servidoresInativos":    4,
-		"servidoresDisponiveis": 5,
-		"aposentados":           6,
+		"membrosAtivos": 1,
 	}
 )
 
@@ -45,7 +39,6 @@ func Crawl(outputPath string, month, year int) ([]string, error) {
 // Generate endpoints able to download
 func links(baseURL string, month, year int) map[string]string {
 	links := make(map[string]string)
-	links[tipoEstagiarios] = fmt.Sprintf("%sFolhaPagamentoEstagiarioExercicioMesOds?exercicio=%d&mes=%d", baseURL, year, month)
 	links[tipoIndenizacoes] = fmt.Sprintf("%sFolhaVerbaIndenizRemTemporariaOds?mes=%d&exercicio=%d&tipo=", baseURL, month, year)
 	for t, id := range tipos {
 		links[t] = fmt.Sprintf("%sFolhaPagamentoExercicioMesNewOds?mes=%d&exercicio=%d&tipo=%d", baseURL, month, year, id)

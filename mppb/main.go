@@ -29,16 +29,14 @@ func main() {
 		os.Exit(1)
 	}
 
-	var folha FolhaDePagamento
-	var remuneracoes Remuneracoes
-	chave_coleta := fmt.Sprintf("mppb/%v/%v", year, month),
-	var parseErr error
-	if folha, remuneracoes, parseErr := Parse(files, chave_coleta); parseErr != nil {
+	chave_coleta := fmt.Sprintf("mppb/%v/%v", year, month)
+	folha, remuneracoes, parseErr := Parse(files, chave_coleta)
+	if parseErr != nil {
 		logError("Parsing error: %q", parseErr)
 		os.Exit(1)
 	}
 
-	er := newCrawlingResult(folha, remuneracoes, files, month, year)
+	er := newCrawlingResult(*folha, *remuneracoes, files, month, year)
 	b, err := json.MarshalIndent(er, "", "  ")
 	if err != nil {
 		logError("JSON marshaling error: %q", err)
