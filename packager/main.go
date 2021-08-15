@@ -34,18 +34,17 @@ func main() {
 	}
 
 	// Creating CSVs.
-
-	if err := ToCSVFile(er.Rc.Coleta, coletaFileName); err != nil {
+	if err := ToCSVFile([]*Coleta{er.Rc.Coleta}, coletaFileName); err != nil {
 		err = status.NewError(status.InvalidParameters, fmt.Errorf("Error creating Coleta CSV:%q", err))
 		status.ExitFromError(err)
 	}
 
-	if err := ToCSVFile(er.Rc.Folha, folhaFileName); err != nil {
+	if err := ToCSVFile(er.Rc.Folha.ContraCheque, folhaFileName); err != nil {
 		err = status.NewError(status.InvalidParameters, fmt.Errorf("Error creating Folha de pagamento CSV:%q", err))
 		status.ExitFromError(err)
 	}
 
-	if err := ToCSVFile(er.Rc.Remuneracoes, remuneracaoFileName); err != nil {
+	if err := ToCSVFile(er.Rc.Remuneracoes.Remuneracao, remuneracaoFileName); err != nil {
 		err = status.NewError(status.InvalidParameters, fmt.Errorf("Error creating Remuneração CSV:%q", err))
 		status.ExitFromError(err)
 	}
