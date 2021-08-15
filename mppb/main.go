@@ -28,6 +28,7 @@ func main() {
 		logError("Crawler error: %q", err)
 		os.Exit(1)
 	}
+	fmt.Println(files)
 
 	chave_coleta := fmt.Sprintf("mppb/%v/%v", year, month)
 	folha, remuneracoes, parseErr := Parse(files, chave_coleta)

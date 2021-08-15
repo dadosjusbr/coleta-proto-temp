@@ -26,16 +26,16 @@ var headersMap = []map[string]int{
 		"AJUDA DE CUSTO":             10,
 		"ADICIONAL DE INSALUBRIDADE": 11,
 		"SUBSTITUIÇÃO CUMULATIVA":    12,
-		"GRATIFICAÇÃO POR  ATUAÇÃO EM  COMARCA DIVERSA": 13,
-		"SUBSTITUIÇÃO DE CARGO":                         14,
-		"SUBSTITUIÇÃO DE  PROCURADOR DE JUSTIÇA":        15,
-		"DIFERENÇA DE  ENTRÂNCIA":                       16,
-		"DIFERENÇA DE  1/3 DE FÉRIAS":                   17,
-		"DIFERENÇA DE  PENSÃO":                          18,
-		"DIFERENÇA ANTERIOR  DENTRO DO EXERCÍCIO":       19,
-		"PARCELA DE GRATIFICAÇÃO  ISONÔMICA":            20,
-		"SERVIÇO EXTRAORDINÁRIO":                        21,
-		"DESPESA DE  EXERCÍCIOS ANTERIORES":             22,
+		"GRATIFICAÇÃO POR ATUAÇÃO EM COMARCA DIVERSA": 13,
+		"SUBSTITUIÇÃO DE CARGO":                       14,
+		"SUBSTITUIÇÃO DE PROCURADOR DE JUSTIÇA":       15,
+		"DIFERENÇA DE ENTRÂNCIA":                      16,
+		"DIFERENÇA DE 1/3 DE FÉRIAS":                  17,
+		"DIFERENÇA DE PENSÃO":                         18,
+		"DIFERENÇA ANTERIOR DENTRO DO EXERCÍCIO":      19,
+		"PARCELA DE GRATIFICAÇÃO ISONÔMICA":           20,
+		"SERVIÇO EXTRAORDINÁRIO":                      21,
+		"DESPESA DE EXERCÍCIOS ANTERIORES":            22,
 	},
 
 	REMUNERACOES: {
@@ -171,80 +171,80 @@ func employeeIncomeInfo(emp []string, perks []string, fileType int, idContraCheq
 	}
 	remuneracoes = append(remuneracoes, remu)
 
-	remu, err = remuneracaoBuild(Remuneracao_R, "ALIMENTAÇÃO", "VERBAS INDENIZATÓRIAS", idContraCheque, chave_coleta, fileType, perks)
+	remu, err = remuneracaoBuild(Remuneracao_R, "ALIMENTAÇÃO", "VERBAS INDENIZATÓRIAS", idContraCheque, chave_coleta, INDENIZACOES, perks)
 	if err != nil {
 		return nil, fmt.Errorf("error retrieving employee income info: %q", err)
 	}
 	remuneracoes = append(remuneracoes, remu)
 
-	remu, err = remuneracaoBuild(Remuneracao_R, "SAÚDE", "VERBAS INDENIZATÓRIAS", idContraCheque, chave_coleta, fileType, perks)
+	remu, err = remuneracaoBuild(Remuneracao_R, "SAÚDE", "VERBAS INDENIZATÓRIAS", idContraCheque, chave_coleta, INDENIZACOES, perks)
 	if err != nil {
 		return nil, fmt.Errorf("error retrieving employee income info: %q", err)
 	}
 	remuneracoes = append(remuneracoes, remu)
 
-	remu, err = remuneracaoBuild(Remuneracao_R, "MORADIA", "VERBAS INDENIZATÓRIAS", idContraCheque, chave_coleta, fileType, perks)
+	remu, err = remuneracaoBuild(Remuneracao_R, "MORADIA", "VERBAS INDENIZATÓRIAS", idContraCheque, chave_coleta, INDENIZACOES, perks)
 	if err != nil {
 		return nil, fmt.Errorf("error retrieving employee income info: %q", err)
 	}
 	remuneracoes = append(remuneracoes, remu)
 
-	remu, err = remuneracaoBuild(Remuneracao_R, "NATALIDADE", "VERBAS INDENIZATÓRIAS", idContraCheque, chave_coleta, fileType, perks)
+	remu, err = remuneracaoBuild(Remuneracao_R, "NATALIDADE", "VERBAS INDENIZATÓRIAS", idContraCheque, chave_coleta, INDENIZACOES, perks)
 	if err != nil {
 		return nil, fmt.Errorf("error retrieving employee income info: %q", err)
 	}
 	remuneracoes = append(remuneracoes, remu)
 
-	remu, err = remuneracaoBuild(Remuneracao_R, "AJUDA DE CUSTO", "VERBAS INDENIZATÓRIAS", idContraCheque, chave_coleta, fileType, perks)
+	remu, err = remuneracaoBuild(Remuneracao_R, "AJUDA DE CUSTO", "VERBAS INDENIZATÓRIAS", idContraCheque, chave_coleta, INDENIZACOES, perks)
 	if err != nil {
 		return nil, fmt.Errorf("error retrieving employee income info: %q", err)
 	}
 	remuneracoes = append(remuneracoes, remu)
 
-	remu, err = remuneracaoBuild(Remuneracao_R, "PECÚNIA", "VERBAS INDENIZATÓRIAS", idContraCheque, chave_coleta, fileType, perks)
+	remu, err = remuneracaoBuild(Remuneracao_R, "PECÚNIA", "VERBAS INDENIZATÓRIAS", idContraCheque, chave_coleta, INDENIZACOES, perks)
 	if err != nil {
 		return nil, fmt.Errorf("error retrieving employee income info: %q", err)
 	}
 	remuneracoes = append(remuneracoes, remu)
 
-	remu, err = remuneracaoBuild(Remuneracao_R, "LICENÇA COMPENSATÓRIA", "VERBAS INDENIZATÓRIAS", idContraCheque, chave_coleta, fileType, perks)
+	remu, err = remuneracaoBuild(Remuneracao_R, "LICENÇA COMPENSATÓRIA", "VERBAS INDENIZATÓRIAS", idContraCheque, chave_coleta, INDENIZACOES, perks)
 	if err != nil {
 		return nil, fmt.Errorf("error retrieving employee income info: %q", err)
 	}
 	remuneracoes = append(remuneracoes, remu)
 
-	remu, err = remuneracaoBuild(Remuneracao_R, "OUTRAS VERBAS", "REMUNERAÇÃO BÁSICA", idContraCheque, chave_coleta, fileType, emp)
+	remu, err = remuneracaoBuild(Remuneracao_R, "OUTRAS VERBAS", "REMUNERAÇÃO BÁSICA", idContraCheque, chave_coleta, REMUNERACOES, emp)
 	if err != nil {
 		return nil, fmt.Errorf("error retrieving employee income info: %q", err)
 	}
 	remuneracoes = append(remuneracoes, remu)
 
-	remu, err = remuneracaoBuild(Remuneracao_R, "PERMANÊNCIA", "REMUNERAÇÃO EVENTUAL OU TEMPORÁRIA", idContraCheque, chave_coleta, fileType, emp)
+	remu, err = remuneracaoBuild(Remuneracao_R, "PERMANÊNCIA", "REMUNERAÇÃO EVENTUAL OU TEMPORÁRIA", idContraCheque, chave_coleta, REMUNERACOES, emp)
 	if err != nil {
 		return nil, fmt.Errorf("error retrieving employee income info: %q", err)
 	}
 	remuneracoes = append(remuneracoes, remu)
 
-	remu, err = remuneracaoBuild(Remuneracao_R, "FÉRIAS", "REMUNERAÇÃO EVENTUAL OU TEMPORÁRIA", idContraCheque, chave_coleta, fileType, emp)
+	remu, err = remuneracaoBuild(Remuneracao_R, "FÉRIAS", "REMUNERAÇÃO EVENTUAL OU TEMPORÁRIA", idContraCheque, chave_coleta, REMUNERACOES, emp)
 	if err != nil {
 		return nil, fmt.Errorf("error retrieving employee income info: %q", err)
 	}
 	remuneracoes = append(remuneracoes, remu)
 
-	remu, err = remuneracaoBuild(Remuneracao_R, "GRATIFICAÇÃO NATALINA", "REMUNERAÇÃO EVENTUAL OU TEMPORÁRIA", idContraCheque, chave_coleta, fileType, emp)
+	remu, err = remuneracaoBuild(Remuneracao_R, "GRATIFICAÇÃO NATALINA", "REMUNERAÇÃO EVENTUAL OU TEMPORÁRIA", idContraCheque, chave_coleta, REMUNERACOES, emp)
 	if err != nil {
 		return nil, fmt.Errorf("error retrieving employee income info: %q", err)
 	}
 	remuneracoes = append(remuneracoes, remu)
 
-	remu, err = remuneracaoBuild(Remuneracao_R, "CARGO EM COMISSÃO", "REMUNERAÇÃO EVENTUAL OU TEMPORÁRIA", idContraCheque, chave_coleta, fileType, emp)
+	remu, err = remuneracaoBuild(Remuneracao_R, "CARGO EM COMISSÃO", "REMUNERAÇÃO EVENTUAL OU TEMPORÁRIA", idContraCheque, chave_coleta, REMUNERACOES, emp)
 	if err != nil {
 		return nil, fmt.Errorf("error retrieving employee income info: %q", err)
 	}
 
-	for key, value := range headersMap[fileType] {
+	for key, value := range headersMap[INDENIZACOES] {
 		if value >= 11 && value <= 21 {
-			remu, err = remuneracaoBuild(Remuneracao_R, key, "OUTRAS REMUNERAÇÕES TEMPORÁRIAS 2", idContraCheque, chave_coleta, fileType, perks)
+			remu, err = remuneracaoBuild(Remuneracao_R, key, "OUTRAS REMUNERAÇÕES TEMPORÁRIAS 2", idContraCheque, chave_coleta, INDENIZACOES, perks)
 			if err != nil {
 				return nil, fmt.Errorf("error retrieving employee income info: %q", err)
 			}
@@ -298,6 +298,7 @@ func dataAsSlices(file string) ([][]string, error) {
 	}
 	result = append(result, getEmployees(doc)...)
 	f.Close()
+
 	return result, nil
 }
 
@@ -321,6 +322,7 @@ func getEmployees(doc ods.Doc) [][]string {
 			break
 		}
 	}
+
 	if lastLine == 0 {
 		return [][]string{}
 	}
@@ -359,5 +361,6 @@ func containsHeader(headers []string, key string, value int) error {
 	if strings.Contains(headers[value], key) {
 		return nil
 	}
+
 	return fmt.Errorf("couldn't find %s at position %d", key, value)
 }
