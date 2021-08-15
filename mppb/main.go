@@ -30,8 +30,8 @@ func main() {
 	}
 	fmt.Println(files)
 
-	chave_coleta := fmt.Sprintf("mppb/%v/%v", year, month)
-	folha, remuneracoes, parseErr := Parse(files, chave_coleta)
+	chaveColeta := fmt.Sprintf("mppb/%v/%v", year, month)
+	folha, remuneracoes, parseErr := Parse(files, chaveColeta)
 	if parseErr != nil {
 		logError("Parsing error: %q", parseErr)
 		os.Exit(1)
@@ -53,9 +53,9 @@ func newCrawlingResult(folha FolhaDePagamento, remuneracoes Remuneracoes, files 
 		Mes:                int32(month),
 		Ano:                int32(year),
 		TimestampColeta:    timestamppb.Now(),
-		RepositorioColetor: "mppb",
+		RepositorioColetor: "https://github.com/dadosjusbr/coletores/tree/master/mppb",
 		VersaoColetor:      gitCommit,
-		DirColetor:         "https://github.com/dadosjusbr/coletores/tree/master/mppb",
+		DirColetor:         "mppb",
 	}
 	rc := ResultadoColeta{
 		Coleta:       &coleta,
