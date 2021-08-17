@@ -66,7 +66,7 @@
                     }
                 },  
                 {
-                    "name": "repositorio_coletor ",
+                    "name": "repositorio_coletor",
                     "title": "Repositório Coletor",
                     "type": "string",
                     "description": "The name of the repository that performed the collection",
@@ -77,7 +77,7 @@
                     }
                 },
                 {
-                    "name": "versao_coletor ",
+                    "name": "versao_coletor",
                     "title": "Versão do coletor",
                     "type": "string",
                     "description": "Version of the collector that performed the collection",
@@ -88,7 +88,7 @@
                     }
                 },
                 {
-                    "name": "dir_coletor  ",
+                    "name": "dir_coletor",
                     "title": "Diretório do coletor",
                     "type": "string",
                     "description": "Directory of the collector who performed the collection",
@@ -149,8 +149,8 @@
                     "description-ptbr": "A palavra que refere-se ao identificador de registro do empregado"
                 },
                 {
-                    "name": "funcao ",
-                    "title": "Funcão",
+                    "name": "funcao",
+                    "title": "Função",
                     "type": "string",
                     "description": "Role of the employee",
                     "format": "default",
@@ -160,7 +160,7 @@
                     }
                 },
                 {
-                    "name": "local_trabalho ",
+                    "name": "local_trabalho",
                     "title": "Local de trabalho",
                     "type": "string",
                     "description": "Employee workplace",
