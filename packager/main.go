@@ -8,6 +8,8 @@ import (
 	"path/filepath"
 
 	"github.com/dadosjusbr/coletores/status"
+	"github.com/dadosjusbr/proto"
+	"github.com/dadosjusbr/proto/csv"
 	"github.com/frictionlessdata/datapackage-go/datapackage"
 )
 
@@ -33,18 +35,19 @@ func main() {
 		status.ExitFromError(status.NewError(5, fmt.Errorf("Error unmarshaling crawling resul from STDIN: %q", err)))
 	}
 
+	csvRc := coletaToCSV(er.Rc)
 	// Creating CSVs.
-	if err := ToCSVFile([]*Coleta{er.Rc.Coleta}, coletaFileName); err != nil {
+	if err := ToCSVFile([]*csv.Coleta{csvRc.Coleta}, coletaFileName); err != nil {
 		err = status.NewError(status.InvalidParameters, fmt.Errorf("Error creating Coleta CSV:%q", err))
 		status.ExitFromError(err)
 	}
 
-	if err := ToCSVFile(er.Rc.Folha.ContraCheque, folhaFileName); err != nil {
+	if err := ToCSVFile(csvRc.Folha.ContraCheque, folhaFileName); err != nil {
 		err = status.NewError(status.InvalidParameters, fmt.Errorf("Error creating Folha de pagamento CSV:%q", err))
 		status.ExitFromError(err)
 	}
 
-	if err := ToCSVFile(er.Rc.Remuneracoes.Remuneracao, remuneracaoFileName); err != nil {
+	if err := ToCSVFile(csvRc.Remuneracoes.Remuneracao, remuneracaoFileName); err != nil {
 		err = status.NewError(status.InvalidParameters, fmt.Errorf("Error creating Remuneração CSV:%q", err))
 		status.ExitFromError(err)
 	}
@@ -83,4 +86,42 @@ func main() {
 		status.ExitFromError(err)
 	}
 	fmt.Println(string(b))
+}
+
+func coletaToCSV(rc proto.ResultadoColeta) csv.ResultadoColeta {
+	var coleta csv.Coleta
+	var remuneracoes csv.Remuneracoes
+	var folha csv.FolhaDePagamento
+
+	coleta.ChaveColeta = rc.Coleta.ChaveColeta
+	coleta.Orgao = rc.Coleta.Orgao
+	coleta.Mes = rc.Coleta.Mes
+	coleta.Ano = rc.Coleta.Ano
+	coleta.TimestampColeta = rc.Coleta.TimestampColeta
+	coleta.RepositorioColetor = rc.Coleta.RepositorioColetor
+	coleta.VersaoColetor = rc.Coleta.VersaoColetor
+	coleta.DirColetor = rc.Coleta.DirColetor
+	for _, v := range rc.Folha.ContraCheque {
+		var contraCheque csv.ContraCheque
+		contraCheque.IdContraCheque = v.IdContraCheque
+		contraCheque.ChaveColeta = v.ChaveColeta
+		contraCheque.Nome = v.Nome
+		contraCheque.Matricula = v.Matricula
+		contraCheque.Funcao = v.Funcao
+		contraCheque.LocalTrabalho = v.LocalTrabalho
+		contraCheque.Tipo = csv.ContraCheque_Tipo(v.Tipo)
+		for _, k := range v.Remuneracoes.Remuneracao {
+			var remuneracao csv.Remuneracao
+			remuneracao.IdContraCheque = v.IdContraCheque
+			remuneracao.ChaveColeta = v.ChaveColeta
+			remuneracao.Natureza = csv.Remuneracao_Natureza(k.Natureza)
+			remuneracao.Categoria = k.Categoria
+			remuneracao.Item = k.Item
+			remuneracao.Valor = k.Valor
+			remuneracoes.Remuneracao = append(remuneracoes.Remuneracao, &remuneracao)
+		}
+		folha.ContraCheque = append(folha.ContraCheque, &contraCheque)
+	}
+
+	return csv.ResultadoColeta{Coleta: &coleta, Remuneracoes: &remuneracoes, Folha: &folha}
 }

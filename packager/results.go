@@ -4,13 +4,14 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/dadosjusbr/proto"
 	"github.com/gocarina/gocsv"
 )
 
 // ExecutionResult collects the results of the whole dadosjusbr execution pipeline.
 type ExecutionResult struct {
-	Pr PackagingResult `json:"pr,omitempty"`
-	Rc ResultadoColeta `json:"rc,omitempty"`
+	Pr PackagingResult       `json:"pr,omitempty"`
+	Rc proto.ResultadoColeta `json:"rc,omitempty"`
 }
 
 // ProcInfo stores information about a process execution.
