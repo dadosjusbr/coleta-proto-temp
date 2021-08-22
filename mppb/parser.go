@@ -4,28 +4,39 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/dadosjusbr/proto"
 	"github.com/knieriem/odf/ods"
 )
 
-// Data type
 const (
-	INDENIZACOES = 1
-	REMUNERACOES = 2
+	INDENIZACOES                                   = 1
+	REMUNERACOES                                   = 2
+	INDENIZACOES_VERBAS_INDENIZATORIAS_1           = 0
+	INDENIZACOES_OUTRAS_REMUNERACOES_TEMPORARIAS_2 = 1
+	REMUNERACAO_BASICA                             = 2
+	REMUNERACAO_EVENTUAL_TEMPORARIA                = 3
+	OBRIGATORIOS_LEGAIS                            = 4
+	INDENIZACOES_MATRICULA                         = 0
+	REMUNERACOES_MATRICULA                         = 0
+	REMUNERACOES_NOME                              = 1
+	REMUNERACOES_CARGO                             = 2
+	REMUNERACOES_LOTACAO                           = 3
 )
 
-// Mapping of headers to indexes
+// Mapeia as categorias das planilhas.
 var headersMap = []map[string]int{
-	INDENIZACOES: {
-		"MATRÍCULA":                  0,
-		"ALIMENTAÇÃO":                4,
-		"SAÚDE":                      5,
-		"PECÚNIA":                    6,
-		"MORADIA":                    7,
-		"LICENÇA COMPENSATÓRIA":      8,
-		"NATALIDADE":                 9,
-		"AJUDA DE CUSTO":             10,
-		"ADICIONAL DE INSALUBRIDADE": 11,
-		"SUBSTITUIÇÃO CUMULATIVA":    12,
+	INDENIZACOES_VERBAS_INDENIZATORIAS_1: {
+		"ALIMENTAÇÃO":           4,
+		"SAÚDE":                 5,
+		"PECÚNIA":               6,
+		"MORADIA":               7,
+		"LICENÇA COMPENSATÓRIA": 8,
+		"NATALIDADE":            9,
+	},
+	INDENIZACOES_OUTRAS_REMUNERACOES_TEMPORARIAS_2: {
+		"AJUDA DE CUSTO":                              10,
+		"ADICIONAL DE INSALUBRIDADE":                  11,
+		"SUBSTITUIÇÃO CUMULATIVA":                     12,
 		"GRATIFICAÇÃO POR ATUAÇÃO EM COMARCA DIVERSA": 13,
 		"SUBSTITUIÇÃO DE CARGO":                       14,
 		"SUBSTITUIÇÃO DE PROCURADOR DE JUSTIÇA":       15,
@@ -37,254 +48,178 @@ var headersMap = []map[string]int{
 		"SERVIÇO EXTRAORDINÁRIO":                      21,
 		"DESPESA DE EXERCÍCIOS ANTERIORES":            22,
 	},
-
-	REMUNERACOES: {
-		"MATRÍCULA":             0,
-		"NOME":                  1,
-		"CARGO":                 2,
-		"LOTAÇÃO":               3,
-		"CARGO EFETIVO":         4,
-		"OUTRAS VERBAS":         5,
+	REMUNERACAO_BASICA: {
+		"CARGO EFETIVO": 4,
+		"OUTRAS VERBAS": 5,
+	},
+	REMUNERACAO_EVENTUAL_TEMPORARIA: {
 		"CARGO EM COMISSÃO":     6,
 		"GRATIFICAÇÃO NATALINA": 7,
 		"FÉRIAS":                8,
 		"PERMANÊNCIA":           9,
-		"TEMPORÁRIAS":           10,
-		"INDENIZATÓRIAS":        11,
-		"PREVIDENCIÁRIA":        13,
-		"IMPOSTO":               14,
-		"RETENÇÃO":              15,
+	},
+	OBRIGATORIOS_LEGAIS: {
+		"PREVIDENCIÁRIA": 13,
+		"IMPOSTO":        14,
+		"RETENÇÃO":       15,
 	},
 }
 
 // Parse parses the ods tables.
-func Parse(files []string, chave_coleta string) (*FolhaDePagamento, *Remuneracoes, error) {
-	var folha []*ContraCheque
-	var remuneracoes []*Remuneracao
+func Parse(arquivos []string, chave_coleta string) (*proto.FolhaDePagamento, error) {
+	var folha []*proto.ContraCheque
 	var parseErr bool
-	perks, err := retrievePerksData(files)
+	indenizacoes, err := getDadosIndenizacoes(arquivos)
 	if err != nil {
-		return nil, nil, fmt.Errorf("error trying to retrieve perks data: %q", err)
+		return nil, fmt.Errorf("erro tentando recuperar os dados de indenizações: %q", err)
 	}
-	for _, f := range files {
-		if dataType(f) == INDENIZACOES {
+	mapIndenizacoes := map[string][]string{}
+	for _, f := range indenizacoes {
+		mapIndenizacoes[f[INDENIZACOES_MATRICULA]] = f
+	}
+
+	for _, f := range arquivos {
+		if tipoCSV(f) == INDENIZACOES {
 			continue
 		}
 
-		data, err := dataAsSlices(f)
+		dados, err := dadosParaMatriz(f)
 		if err != nil {
-			return nil, nil, fmt.Errorf("error trying to parse data as slices(%s): %q", f, err)
+			return nil, fmt.Errorf("erro na tentativa de transformar os dados em matriz (%s): %q", f, err)
 		}
-		if len(data) == 0 {
-			return nil, nil, fmt.Errorf("No data to be parsed. (%s)", f)
+		if len(dados) == 0 {
+			return nil, fmt.Errorf("Não há dados para serem parseados. (%s)", f)
 		}
-
-		remu, contra_cheque, ok := retrieveEmployees(data, perks, chave_coleta, f)
+		contra_cheque, ok := getMembros(dados, mapIndenizacoes, chave_coleta, f)
 		if !ok {
 			parseErr = true
 		}
 		folha = append(folha, contra_cheque...)
-		remuneracoes = append(remuneracoes, remu...)
 	}
 	if parseErr {
-		return &FolhaDePagamento{ContraCheque: folha}, &Remuneracoes{Remuneracao: remuneracoes}, fmt.Errorf("parse error")
+		return &proto.FolhaDePagamento{ContraCheque: folha}, fmt.Errorf("parse error")
 	}
-	return &FolhaDePagamento{ContraCheque: folha}, &Remuneracoes{Remuneracao: remuneracoes}, nil
+	return &proto.FolhaDePagamento{ContraCheque: folha}, nil
 }
 
-func retrievePerksData(files []string) ([][]string, error) {
+// getDadosIndenizacoes retorna a planilha de indenizações em forma de matriz
+func getDadosIndenizacoes(files []string) ([][]string, error) {
 	for _, f := range files {
-		if dataType(f) == INDENIZACOES {
-			return dataAsSlices(f)
+		if tipoCSV(f) == INDENIZACOES {
+			return dadosParaMatriz(f)
 		}
 	}
 	return nil, nil
 }
 
-func retrieveEmployees(emps [][]string, perks [][]string, chave_coleta string, fileName string) ([]*Remuneracao, []*ContraCheque, bool) {
+// getMembros retorna o array com a folha de pagamento da coleta.
+func getMembros(membros [][]string, mapIndenizacoes map[string][]string, chaveColeta string, fileName string) ([]*proto.ContraCheque, bool) {
 	ok := true
-	var remuneracoes []*Remuneracao
+	var contraCheque []*proto.ContraCheque
 	counter := 1
-	var contra_cheque []*ContraCheque
-	for _, emp := range emps {
+	for _, membro := range membros {
 		var err error
-		var newEmp *ContraCheque
-		var newRem []*Remuneracao
-		empPerks := retrievePerksLine(emp[0], perks)
-		if newEmp, newRem, err = newEmployee(emp, empPerks, chave_coleta, counter, fileName); err != nil {
+		var novoMembro *proto.ContraCheque
+		indenizacoesMembro := getIndenizacaoMembro(membro[0], mapIndenizacoes)
+		if novoMembro, err = criaMembro(membro, indenizacoesMembro, chaveColeta, counter, fileName); err != nil {
 			ok = false
-			logError("error retrieving employee from %s: %q", fileName, err)
+			logError("error na criação de um novo membro %s: %q", fileName, err)
 			continue
 		}
 		counter++
-		remuneracoes = append(remuneracoes, newRem...)
-		contra_cheque = append(contra_cheque, newEmp)
+		contraCheque = append(contraCheque, novoMembro)
 	}
-	return remuneracoes, contra_cheque, ok
+	return contraCheque, ok
 }
 
-func retrievePerksLine(regNum string, perks [][]string) []string {
-	if perks == nil || len(perks) == 0 {
-		return nil
-	}
-	for _, p := range perks {
-		if p[headersMap[INDENIZACOES]["MATRÍCULA"]] == regNum {
-			return p
-		}
+// getIndenizacaoMembro busca as indenizacoes de um membro baseado na matrícula.
+func getIndenizacaoMembro(regNum string, mapIndenizacoes map[string][]string) []string {
+	if val, ok := mapIndenizacoes[regNum]; ok {
+		return val
 	}
 	return nil
 }
 
-func newEmployee(emp []string, perks []string, chave_coleta string, counter int, fileName string) (*ContraCheque, []*Remuneracao, error) {
-	fileType := dataType(fileName)
-
-	var newEmp ContraCheque
-
-	newEmp.IdContraCheque = fmt.Sprintf("%v/%v", chave_coleta, counter)
-	newEmp.ChaveColeta = chave_coleta
-	newEmp.Matricula = retrieveString(emp, "MATRÍCULA", fileType)
-	newEmp.Nome = retrieveString(emp, "NOME", fileType)
-	newEmp.Funcao = retrieveString(emp, "CARGO", fileType)
-	newEmp.LocalTrabalho = retrieveString(emp, "LOTAÇÃO", fileType)
-	newEmp.Tipo = ContraCheque_MEMBRO
-	newEmp.Ativo = true
-	remuneracoes, err := employeeIncomeInfo(emp, perks, fileType, newEmp.IdContraCheque, chave_coleta)
+// criaMembro monta um contracheque de um único membro.
+func criaMembro(membro []string, indenizacoes []string, chaveColeta string, counter int, fileName string) (*proto.ContraCheque, error) {
+	var novoMembro proto.ContraCheque
+	novoMembro.IdContraCheque = fmt.Sprintf("%v/%v", chaveColeta, counter)
+	novoMembro.ChaveColeta = chaveColeta
+	novoMembro.Matricula = membro[REMUNERACOES_MATRICULA]
+	novoMembro.Nome = membro[REMUNERACOES_NOME]
+	novoMembro.Funcao = membro[REMUNERACOES_CARGO]
+	novoMembro.LocalTrabalho = membro[REMUNERACOES_LOTACAO]
+	novoMembro.Tipo = proto.ContraCheque_MEMBRO
+	novoMembro.Ativo = true
+	remuneracoes, err := processaRemuneracao(membro, indenizacoes)
 	if err != nil {
-		return nil, nil, fmt.Errorf("error parsing new employee: %q", err)
+		return nil, fmt.Errorf("error na transformação das remunerações: %q", err)
 	}
-	descontos, err := employeeDiscountInfo(emp, fileType, newEmp.IdContraCheque, chave_coleta)
-	if err != nil {
-		return nil, nil, fmt.Errorf("error parsing new employee: %q", err)
-	}
-
-	remuneracoes = append(remuneracoes, descontos...)
-
-	return &newEmp, remuneracoes, nil
+	novoMembro.Remuneracoes = &proto.Remuneracoes{Remuneracao: remuneracoes}
+	return &novoMembro, nil
 }
 
-func employeeIncomeInfo(emp []string, perks []string, fileType int, idContraCheque string, chave_coleta string) ([]*Remuneracao, error) {
-	var err error
-	var remuneracoes []*Remuneracao
-	remu, err := remuneracaoBuild(Remuneracao_R, "CARGO EFETIVO", "REMUNERAÇÃO BÁSICA", idContraCheque, chave_coleta, fileType, emp)
-	if err != nil {
-		return nil, fmt.Errorf("error retrieving employee income info: %q", err)
-	}
-	remuneracoes = append(remuneracoes, remu)
-
-	remu, err = remuneracaoBuild(Remuneracao_R, "ALIMENTAÇÃO", "VERBAS INDENIZATÓRIAS", idContraCheque, chave_coleta, INDENIZACOES, perks)
-	if err != nil {
-		return nil, fmt.Errorf("error retrieving employee income info: %q", err)
-	}
-	remuneracoes = append(remuneracoes, remu)
-
-	remu, err = remuneracaoBuild(Remuneracao_R, "SAÚDE", "VERBAS INDENIZATÓRIAS", idContraCheque, chave_coleta, INDENIZACOES, perks)
-	if err != nil {
-		return nil, fmt.Errorf("error retrieving employee income info: %q", err)
-	}
-	remuneracoes = append(remuneracoes, remu)
-
-	remu, err = remuneracaoBuild(Remuneracao_R, "MORADIA", "VERBAS INDENIZATÓRIAS", idContraCheque, chave_coleta, INDENIZACOES, perks)
-	if err != nil {
-		return nil, fmt.Errorf("error retrieving employee income info: %q", err)
-	}
-	remuneracoes = append(remuneracoes, remu)
-
-	remu, err = remuneracaoBuild(Remuneracao_R, "NATALIDADE", "VERBAS INDENIZATÓRIAS", idContraCheque, chave_coleta, INDENIZACOES, perks)
-	if err != nil {
-		return nil, fmt.Errorf("error retrieving employee income info: %q", err)
-	}
-	remuneracoes = append(remuneracoes, remu)
-
-	remu, err = remuneracaoBuild(Remuneracao_R, "AJUDA DE CUSTO", "VERBAS INDENIZATÓRIAS", idContraCheque, chave_coleta, INDENIZACOES, perks)
-	if err != nil {
-		return nil, fmt.Errorf("error retrieving employee income info: %q", err)
-	}
-	remuneracoes = append(remuneracoes, remu)
-
-	remu, err = remuneracaoBuild(Remuneracao_R, "PECÚNIA", "VERBAS INDENIZATÓRIAS", idContraCheque, chave_coleta, INDENIZACOES, perks)
-	if err != nil {
-		return nil, fmt.Errorf("error retrieving employee income info: %q", err)
-	}
-	remuneracoes = append(remuneracoes, remu)
-
-	remu, err = remuneracaoBuild(Remuneracao_R, "LICENÇA COMPENSATÓRIA", "VERBAS INDENIZATÓRIAS", idContraCheque, chave_coleta, INDENIZACOES, perks)
-	if err != nil {
-		return nil, fmt.Errorf("error retrieving employee income info: %q", err)
-	}
-	remuneracoes = append(remuneracoes, remu)
-
-	remu, err = remuneracaoBuild(Remuneracao_R, "OUTRAS VERBAS", "REMUNERAÇÃO BÁSICA", idContraCheque, chave_coleta, REMUNERACOES, emp)
-	if err != nil {
-		return nil, fmt.Errorf("error retrieving employee income info: %q", err)
-	}
-	remuneracoes = append(remuneracoes, remu)
-
-	remu, err = remuneracaoBuild(Remuneracao_R, "PERMANÊNCIA", "REMUNERAÇÃO EVENTUAL OU TEMPORÁRIA", idContraCheque, chave_coleta, REMUNERACOES, emp)
-	if err != nil {
-		return nil, fmt.Errorf("error retrieving employee income info: %q", err)
-	}
-	remuneracoes = append(remuneracoes, remu)
-
-	remu, err = remuneracaoBuild(Remuneracao_R, "FÉRIAS", "REMUNERAÇÃO EVENTUAL OU TEMPORÁRIA", idContraCheque, chave_coleta, REMUNERACOES, emp)
-	if err != nil {
-		return nil, fmt.Errorf("error retrieving employee income info: %q", err)
-	}
-	remuneracoes = append(remuneracoes, remu)
-
-	remu, err = remuneracaoBuild(Remuneracao_R, "GRATIFICAÇÃO NATALINA", "REMUNERAÇÃO EVENTUAL OU TEMPORÁRIA", idContraCheque, chave_coleta, REMUNERACOES, emp)
-	if err != nil {
-		return nil, fmt.Errorf("error retrieving employee income info: %q", err)
-	}
-	remuneracoes = append(remuneracoes, remu)
-
-	remu, err = remuneracaoBuild(Remuneracao_R, "CARGO EM COMISSÃO", "REMUNERAÇÃO EVENTUAL OU TEMPORÁRIA", idContraCheque, chave_coleta, REMUNERACOES, emp)
-	if err != nil {
-		return nil, fmt.Errorf("error retrieving employee income info: %q", err)
-	}
-
-	for key, value := range headersMap[INDENIZACOES] {
-		if value >= 11 && value <= 21 {
-			remu, err = remuneracaoBuild(Remuneracao_R, key, "OUTRAS REMUNERAÇÕES TEMPORÁRIAS 2", idContraCheque, chave_coleta, INDENIZACOES, perks)
+// processaRemuneracao processa todas as remunerações de um único membro.
+func processaRemuneracao(membro []string, indenizacoes []string) ([]*proto.Remuneracao, error) {
+	var remuneracoes []*proto.Remuneracao
+	for i := range headersMap {
+		switch i {
+		case INDENIZACOES_VERBAS_INDENIZATORIAS_1:
+			temp, err := criaRemuneracao(indenizacoes, proto.Remuneracao_R, "VERBAS INDENIZATÓRIAS 1", i)
 			if err != nil {
-				return nil, fmt.Errorf("error retrieving employee income info: %q", err)
+				return nil, fmt.Errorf("erro processando verbas indenizatorias 1: %q", err)
 			}
-			remuneracoes = append(remuneracoes, remu)
+			remuneracoes = append(remuneracoes, temp...)
+		case INDENIZACOES_OUTRAS_REMUNERACOES_TEMPORARIAS_2:
+			temp, err := criaRemuneracao(indenizacoes, proto.Remuneracao_R, "OUTRAS REMUNERAÇÕES TEMPORÁRIAS 2", i)
+			if err != nil {
+				return nil, fmt.Errorf("erro processando outras remuneracoes temporarias 2: %q", err)
+			}
+			remuneracoes = append(remuneracoes, temp...)
+		case REMUNERACAO_BASICA:
+			temp, err := criaRemuneracao(membro, proto.Remuneracao_R, "REMUNERAÇÃO BÁSICA", i)
+			if err != nil {
+				return nil, fmt.Errorf("erro processando remuneracao básica: %q", err)
+			}
+			remuneracoes = append(remuneracoes, temp...)
+		case REMUNERACAO_EVENTUAL_TEMPORARIA:
+			temp, err := criaRemuneracao(membro, proto.Remuneracao_R, "REMUNERAÇÃO EVENTUAL OU TEMPORÁRIA", i)
+			if err != nil {
+				return nil, fmt.Errorf("erro processando remuneracao eventual temporaria: %q", err)
+			}
+			remuneracoes = append(remuneracoes, temp...)
+		default:
+			temp, err := criaRemuneracao(membro, proto.Remuneracao_D, "OBRIGATÓRIOS/LEGAIS", i)
+			if err != nil {
+				return nil, fmt.Errorf("erro processando erro processando obrigatório/legais: %q", err)
+			}
+			remuneracoes = append(remuneracoes, temp...)
 		}
 	}
-
 	return remuneracoes, nil
 }
 
-func remuneracaoBuild(natureza Remuneracao_Natureza, nome_auxilio, categoria, idContraCheque, chave_coleta string, fileType int, data []string) (*Remuneracao, error) {
-	var remuneracao Remuneracao
-	remuneracao.IdContraCheque = idContraCheque
-	remuneracao.ChaveColeta = chave_coleta
-	remuneracao.Natureza = natureza
-	remuneracao.Categoria = categoria
-	remuneracao.Item = nome_auxilio
-	if err := retrieveFloat64(&remuneracao.Valor, data, nome_auxilio, fileType); err != nil {
-		return nil, fmt.Errorf("error retrieving employee income info: %q", err)
-	}
-	if natureza == Remuneracao_D {
-		remuneracao.Valor = remuneracao.Valor * (-1)
-	}
-	return &remuneracao, nil
-}
-
-func employeeDiscountInfo(emp []string, fileType int, idContraCheque, chave_coleta string) ([]*Remuneracao, error) {
-
-	var descontos []*Remuneracao
-	for _, i := range []string{"PREVIDENCIÁRIA", "RETENÇÃO", "IMPOSTO"} {
-		desc, err := remuneracaoBuild(Remuneracao_D, i, "Obrigatórios / Legais", idContraCheque, chave_coleta, fileType, emp)
-		if err != nil {
-			return nil, fmt.Errorf("error retrieving employee income info: %q", err)
+// criaRemuneracao monta as remuneracoes de um membro, a partir de cada categoria.
+func criaRemuneracao(planilha []string, natureza proto.Remuneracao_Natureza, categoria string, indice int) ([]*proto.Remuneracao, error) {
+	var remuneracoes []*proto.Remuneracao
+	for key := range headersMap[indice] {
+		var remuneracao proto.Remuneracao
+		remuneracao.Natureza = natureza
+		remuneracao.Categoria = categoria
+		remuneracao.Item = key
+		if err := retrieveFloat64(&remuneracao.Valor, planilha, key, indice); err != nil {
+			return nil, fmt.Errorf("error buscando o valor na planilha: %q", err)
 		}
-		descontos = append(descontos, desc)
+		if natureza == proto.Remuneracao_D {
+			remuneracao.Valor = remuneracao.Valor * (-1)
+		}
+		remuneracoes = append(remuneracoes, &remuneracao)
 	}
-	return descontos, nil
+	return remuneracoes, nil
 }
 
-func dataAsSlices(file string) ([][]string, error) {
+// dadosParaMatriz transforma os dados de determinado arquivo, em uma matriz
+func dadosParaMatriz(file string) ([][]string, error) {
 	var result [][]string
 	var doc ods.Doc
 	f, err := ods.Open(file)
@@ -292,7 +227,7 @@ func dataAsSlices(file string) ([][]string, error) {
 		return nil, fmt.Errorf("ods.Open error(%s): %q", file, err)
 	}
 	f.ParseContent(&doc)
-	fileType := dataType(file)
+	fileType := tipoCSV(file)
 	if err := assertHeaders(doc, fileType); err != nil {
 		return nil, fmt.Errorf("assertHeaders() for %s error: %q", file, err)
 	}
@@ -302,15 +237,17 @@ func dataAsSlices(file string) ([][]string, error) {
 	return result, nil
 }
 
-func dataType(fileName string) int {
-	if strings.Contains(fileName, "indenizacoes") {
+// tipoCSV checa se o arquivo é de indenizações ou membros.
+func tipoCSV(nomeArquivo string) int {
+	if strings.Contains(nomeArquivo, "indenizacoes") {
 		return INDENIZACOES
-	} else if strings.Contains(fileName, "membros") {
+	} else if strings.Contains(nomeArquivo, "membros") {
 		return REMUNERACOES
 	}
 	return -1
 }
 
+// getEmployees varre a lista de membros e seleciona apenas as linhas que correspondem aos dados.
 func getEmployees(doc ods.Doc) [][]string {
 	var lastLine int
 	for i, values := range doc.Table[0].Strings() {
@@ -329,6 +266,7 @@ func getEmployees(doc ods.Doc) [][]string {
 	return cleanStrings(doc.Table[0].Strings()[10:lastLine])
 }
 
+// getHeaders varre o documento e retorna o cabeçalho de cada arquivo.
 func getHeaders(doc ods.Doc, fileType int) []string {
 	var headers []string
 	raw := cleanStrings(doc.Table[0].Strings()[5:8])
@@ -347,6 +285,7 @@ func getHeaders(doc ods.Doc, fileType int) []string {
 	return headers
 }
 
+// assertHeaders verifica se o cabeçalho existe.
 func assertHeaders(doc ods.Doc, fileType int) error {
 	headers := getHeaders(doc, fileType)
 	for key, value := range headersMap[fileType] {
@@ -357,10 +296,10 @@ func assertHeaders(doc ods.Doc, fileType int) error {
 	return nil
 }
 
+// containsHeader verifica se é possível encontrar a chave buscada em alguma posição da planilha.
 func containsHeader(headers []string, key string, value int) error {
 	if strings.Contains(headers[value], key) {
 		return nil
 	}
-
 	return fmt.Errorf("couldn't find %s at position %d", key, value)
 }
