@@ -7,7 +7,6 @@ import (
 	"strconv"
 
 	"github.com/dadosjusbr/proto"
-	"github.com/joho/godotenv"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -19,7 +18,6 @@ const (
 )
 
 func main() {
-	err := godotenv.Load(".env")
 	month, err := strconv.Atoi(os.Getenv("MONTH"))
 	if err != nil {
 		logError("Invalid month (\"%s\"): %q", os.Getenv("MONTH"), err)
