@@ -14,11 +14,11 @@ func logError(format string, args ...interface{}) {
 	fmt.Fprintf(os.Stderr, time+format+"\n", args...)
 }
 
-func retrieveString(emp []string, key string, fileType int) string {
+func retrieveString(emp []string, key string, fileType string) string {
 	return emp[headersMap[fileType][key]]
 }
 
-func retrieveFloat64(v interface{}, emp []string, key string, fileType int) error {
+func retrieveFloat64(v interface{}, emp []string, key string, fileType string) error {
 	var err error
 	var value float64
 	valueStr := retrieveString(emp, key, fileType)

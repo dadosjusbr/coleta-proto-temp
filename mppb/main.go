@@ -13,9 +13,13 @@ import (
 
 var gitCommit string
 
+const (
+	agenciaID  = "mppb"
+	repColetor = "https://github.com/dadosjusbr/coletores"
+)
+
 func main() {
 	err := godotenv.Load(".env")
-	outputFolder := os.Getenv("OUTPUT_FOLDER")
 	month, err := strconv.Atoi(os.Getenv("MONTH"))
 	if err != nil {
 		logError("Invalid month (\"%s\"): %q", os.Getenv("MONTH"), err)
@@ -26,6 +30,7 @@ func main() {
 		logError("Invalid year (\"%s\"): %q", os.Getenv("YEAR"), err)
 		os.Exit(1)
 	}
+	outputFolder := os.Getenv("OUTPUT_FOLDER")
 	if outputFolder == "" {
 		outputFolder = "./output"
 	}
@@ -41,7 +46,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	chaveColeta := proto.IDColeta("mppb", month, year)
+	chaveColeta := proto.IDColeta(agenciaID, month, year)
 
 	folha, parseErr := Parse(files, chaveColeta)
 	if parseErr != nil {
@@ -49,29 +54,25 @@ func main() {
 		os.Exit(1)
 	}
 
-	er := newCrawlingResult(*folha, chaveColeta, files, month, year)
-	b, err := json.MarshalIndent(er, "", "  ")
+	coleta := proto.Coleta{
+		ChaveColeta:        chaveColeta,
+		Orgao:              agenciaID,
+		Mes:                int32(month),
+		Ano:                int32(year),
+		TimestampColeta:    timestamppb.Now(),
+		RepositorioColetor: repColetor,
+		VersaoColetor:      gitCommit,
+		DirColetor:         agenciaID,
+	}
+	rc := proto.ResultadoColeta{
+		Coleta: &coleta,
+		Folha:  folha,
+	}
+
+	b, err := json.MarshalIndent(rc, "", "  ")
 	if err != nil {
 		logError("JSON marshaling error: %q", err)
 		os.Exit(1)
 	}
 	fmt.Printf("%s", string(b))
-}
-
-func newCrawlingResult(folha proto.FolhaDePagamento, chaveColeta string, files []string, month, year int) proto.ResultadoColeta {
-	coleta := proto.Coleta{
-		ChaveColeta:        chaveColeta,
-		Orgao:              "mppb",
-		Mes:                int32(month),
-		Ano:                int32(year),
-		TimestampColeta:    timestamppb.Now(),
-		RepositorioColetor: "mppb",
-		VersaoColetor:      gitCommit,
-		DirColetor:         "https://github.com/dadosjusbr/coletores/tree/master/mppb",
-	}
-	rc := proto.ResultadoColeta{
-		Coleta: &coleta,
-		Folha:  &folha,
-	}
-	return rc
 }

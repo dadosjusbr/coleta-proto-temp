@@ -9,22 +9,17 @@ import (
 )
 
 const (
-	INDENIZACOES                                   = 1
-	REMUNERACOES                                   = 2
-	INDENIZACOES_VERBAS_INDENIZATORIAS_1           = 0
-	INDENIZACOES_OUTRAS_REMUNERACOES_TEMPORARIAS_2 = 1
-	REMUNERACAO_BASICA                             = 2
-	REMUNERACAO_EVENTUAL_TEMPORARIA                = 3
-	OBRIGATORIOS_LEGAIS                            = 4
-	INDENIZACOES_MATRICULA                         = 0
-	REMUNERACOES_MATRICULA                         = 0
-	REMUNERACOES_NOME                              = 1
-	REMUNERACOES_CARGO                             = 2
-	REMUNERACOES_LOTACAO                           = 3
+	INDENIZACOES                                   = "indenizacoes"
+	REMUNERACOES                                   = "membros"
+	INDENIZACOES_VERBAS_INDENIZATORIAS_1           = "VERBAS INDENIZATÓRIAS 1"
+	INDENIZACOES_OUTRAS_REMUNERACOES_TEMPORARIAS_2 = "OUTRAS REMUNERAÇÕES TEMPORÁRIAS 2"
+	REMUNERACAO_BASICA                             = "REMUNERAÇÃO BÁSICA"
+	REMUNERACAO_EVENTUAL_TEMPORARIA                = "REMUNERAÇÃO EVENTUAL OU TEMPORÁRIA"
+	OBRIGATORIOS_LEGAIS                            = "OBRIGATÓRIOS/LEGAIS"
 )
 
 // Mapeia as categorias das planilhas.
-var headersMap = []map[string]int{
+var headersMap = map[string]map[string]int{
 	INDENIZACOES_VERBAS_INDENIZATORIAS_1: {
 		"ALIMENTAÇÃO":           4,
 		"SAÚDE":                 5,
@@ -74,6 +69,7 @@ func Parse(arquivos []string, chave_coleta string) (*proto.FolhaDePagamento, err
 		return nil, fmt.Errorf("erro tentando recuperar os dados de indenizações: %q", err)
 	}
 	mapIndenizacoes := map[string][]string{}
+	const INDENIZACOES_MATRICULA = 0
 	for _, f := range indenizacoes {
 		mapIndenizacoes[f[INDENIZACOES_MATRICULA]] = f
 	}
@@ -143,6 +139,10 @@ func getIndenizacaoMembro(regNum string, mapIndenizacoes map[string][]string) []
 // criaMembro monta um contracheque de um único membro.
 func criaMembro(membro []string, indenizacoes []string, chaveColeta string, counter int, fileName string) (*proto.ContraCheque, error) {
 	var novoMembro proto.ContraCheque
+	const REMUNERACOES_MATRICULA = 0
+	const REMUNERACOES_NOME = 1
+	const REMUNERACOES_CARGO = 2
+	const REMUNERACOES_LOTACAO = 3
 	novoMembro.IdContraCheque = fmt.Sprintf("%v/%v", chaveColeta, counter)
 	novoMembro.ChaveColeta = chaveColeta
 	novoMembro.Matricula = membro[REMUNERACOES_MATRICULA]
@@ -162,52 +162,48 @@ func criaMembro(membro []string, indenizacoes []string, chaveColeta string, coun
 // processaRemuneracao processa todas as remunerações de um único membro.
 func processaRemuneracao(membro []string, indenizacoes []string) ([]*proto.Remuneracao, error) {
 	var remuneracoes []*proto.Remuneracao
-	for i := range headersMap {
-		switch i {
-		case INDENIZACOES_VERBAS_INDENIZATORIAS_1:
-			temp, err := criaRemuneracao(indenizacoes, proto.Remuneracao_R, "VERBAS INDENIZATÓRIAS 1", i)
-			if err != nil {
-				return nil, fmt.Errorf("erro processando verbas indenizatorias 1: %q", err)
-			}
-			remuneracoes = append(remuneracoes, temp...)
-		case INDENIZACOES_OUTRAS_REMUNERACOES_TEMPORARIAS_2:
-			temp, err := criaRemuneracao(indenizacoes, proto.Remuneracao_R, "OUTRAS REMUNERAÇÕES TEMPORÁRIAS 2", i)
-			if err != nil {
-				return nil, fmt.Errorf("erro processando outras remuneracoes temporarias 2: %q", err)
-			}
-			remuneracoes = append(remuneracoes, temp...)
-		case REMUNERACAO_BASICA:
-			temp, err := criaRemuneracao(membro, proto.Remuneracao_R, "REMUNERAÇÃO BÁSICA", i)
-			if err != nil {
-				return nil, fmt.Errorf("erro processando remuneracao básica: %q", err)
-			}
-			remuneracoes = append(remuneracoes, temp...)
-		case REMUNERACAO_EVENTUAL_TEMPORARIA:
-			temp, err := criaRemuneracao(membro, proto.Remuneracao_R, "REMUNERAÇÃO EVENTUAL OU TEMPORÁRIA", i)
-			if err != nil {
-				return nil, fmt.Errorf("erro processando remuneracao eventual temporaria: %q", err)
-			}
-			remuneracoes = append(remuneracoes, temp...)
-		default:
-			temp, err := criaRemuneracao(membro, proto.Remuneracao_D, "OBRIGATÓRIOS/LEGAIS", i)
-			if err != nil {
-				return nil, fmt.Errorf("erro processando erro processando obrigatório/legais: %q", err)
-			}
-			remuneracoes = append(remuneracoes, temp...)
-		}
+	temp, err := criaRemuneracao(indenizacoes, proto.Remuneracao_R, INDENIZACOES_VERBAS_INDENIZATORIAS_1)
+	if err != nil {
+		return nil, fmt.Errorf("erro processando verbas indenizatorias 1: %q", err)
 	}
+	remuneracoes = append(remuneracoes, temp...)
+
+	temp, err = criaRemuneracao(indenizacoes, proto.Remuneracao_R, INDENIZACOES_OUTRAS_REMUNERACOES_TEMPORARIAS_2)
+	if err != nil {
+		return nil, fmt.Errorf("erro processando outras remuneracoes temporarias 2: %q", err)
+	}
+	remuneracoes = append(remuneracoes, temp...)
+
+	temp, err = criaRemuneracao(membro, proto.Remuneracao_R, REMUNERACAO_BASICA)
+	if err != nil {
+		return nil, fmt.Errorf("erro processando remuneracao básica: %q", err)
+	}
+	remuneracoes = append(remuneracoes, temp...)
+
+	temp, err = criaRemuneracao(membro, proto.Remuneracao_R, REMUNERACAO_EVENTUAL_TEMPORARIA)
+	if err != nil {
+		return nil, fmt.Errorf("erro processando remuneracao eventual temporaria: %q", err)
+	}
+	remuneracoes = append(remuneracoes, temp...)
+
+	temp, err = criaRemuneracao(membro, proto.Remuneracao_D, OBRIGATORIOS_LEGAIS)
+	if err != nil {
+		return nil, fmt.Errorf("erro processando erro processando obrigatório/legais: %q", err)
+	}
+	remuneracoes = append(remuneracoes, temp...)
+
 	return remuneracoes, nil
 }
 
 // criaRemuneracao monta as remuneracoes de um membro, a partir de cada categoria.
-func criaRemuneracao(planilha []string, natureza proto.Remuneracao_Natureza, categoria string, indice int) ([]*proto.Remuneracao, error) {
+func criaRemuneracao(planilha []string, natureza proto.Remuneracao_Natureza, categoria string) ([]*proto.Remuneracao, error) {
 	var remuneracoes []*proto.Remuneracao
-	for key := range headersMap[indice] {
+	for key := range headersMap[categoria] {
 		var remuneracao proto.Remuneracao
 		remuneracao.Natureza = natureza
 		remuneracao.Categoria = categoria
 		remuneracao.Item = key
-		if err := retrieveFloat64(&remuneracao.Valor, planilha, key, indice); err != nil {
+		if err := retrieveFloat64(&remuneracao.Valor, planilha, key, categoria); err != nil {
 			return nil, fmt.Errorf("error buscando o valor na planilha: %q", err)
 		}
 		if natureza == proto.Remuneracao_D {
@@ -223,6 +219,7 @@ func dadosParaMatriz(file string) ([][]string, error) {
 	var result [][]string
 	var doc ods.Doc
 	f, err := ods.Open(file)
+	defer f.Close()
 	if err != nil {
 		return nil, fmt.Errorf("ods.Open error(%s): %q", file, err)
 	}
@@ -232,19 +229,17 @@ func dadosParaMatriz(file string) ([][]string, error) {
 		return nil, fmt.Errorf("assertHeaders() for %s error: %q", file, err)
 	}
 	result = append(result, getEmployees(doc)...)
-	f.Close()
-
 	return result, nil
 }
 
 // tipoCSV checa se o arquivo é de indenizações ou membros.
-func tipoCSV(nomeArquivo string) int {
-	if strings.Contains(nomeArquivo, "indenizacoes") {
+func tipoCSV(nomeArquivo string) string {
+	if strings.Contains(nomeArquivo, INDENIZACOES) {
 		return INDENIZACOES
-	} else if strings.Contains(nomeArquivo, "membros") {
+	} else if strings.Contains(nomeArquivo, REMUNERACOES) {
 		return REMUNERACOES
 	}
-	return -1
+	return ""
 }
 
 // getEmployees varre a lista de membros e seleciona apenas as linhas que correspondem aos dados.
@@ -267,7 +262,7 @@ func getEmployees(doc ods.Doc) [][]string {
 }
 
 // getHeaders varre o documento e retorna o cabeçalho de cada arquivo.
-func getHeaders(doc ods.Doc, fileType int) []string {
+func getHeaders(doc ods.Doc, fileType string) []string {
 	var headers []string
 	raw := cleanStrings(doc.Table[0].Strings()[5:8])
 	switch fileType {
@@ -286,7 +281,7 @@ func getHeaders(doc ods.Doc, fileType int) []string {
 }
 
 // assertHeaders verifica se o cabeçalho existe.
-func assertHeaders(doc ods.Doc, fileType int) error {
+func assertHeaders(doc ods.Doc, fileType string) error {
 	headers := getHeaders(doc, fileType)
 	for key, value := range headersMap[fileType] {
 		if err := containsHeader(headers, key, value); err != nil {
