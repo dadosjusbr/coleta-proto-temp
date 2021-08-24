@@ -73,12 +73,10 @@ func Parse(arquivos []string, chave_coleta string) (*proto.FolhaDePagamento, err
 	for _, f := range indenizacoes {
 		mapIndenizacoes[f[INDENIZACOES_MATRICULA]] = f
 	}
-
 	for _, f := range arquivos {
 		if tipoCSV(f) == INDENIZACOES {
 			continue
 		}
-
 		dados, err := dadosParaMatriz(f)
 		if err != nil {
 			return nil, fmt.Errorf("erro na tentativa de transformar os dados em matriz (%s): %q", f, err)
@@ -198,12 +196,14 @@ func processaRemuneracao(membro []string, indenizacoes []string) ([]*proto.Remun
 // criaRemuneracao monta as remuneracoes de um membro, a partir de cada categoria.
 func criaRemuneracao(planilha []string, natureza proto.Remuneracao_Natureza, categoria string) ([]*proto.Remuneracao, error) {
 	var remuneracoes []*proto.Remuneracao
+	var err error
 	for key := range headersMap[categoria] {
 		var remuneracao proto.Remuneracao
 		remuneracao.Natureza = natureza
 		remuneracao.Categoria = categoria
 		remuneracao.Item = key
-		if err := retrieveFloat64(&remuneracao.Valor, planilha, key, categoria); err != nil {
+		remuneracao.Valor, err = parseFloat(planilha, key, categoria)
+		if err != nil {
 			return nil, fmt.Errorf("error buscando o valor na planilha: %q", err)
 		}
 		if natureza == proto.Remuneracao_D {
@@ -254,7 +254,6 @@ func getEmployees(doc ods.Doc) [][]string {
 			break
 		}
 	}
-
 	if lastLine == 0 {
 		return [][]string{}
 	}
