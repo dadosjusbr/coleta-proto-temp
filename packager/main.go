@@ -92,7 +92,6 @@ func coletaToCSV(rc coleta.ResultadoColeta) csv.ResultadoColeta_CSV {
 	var coleta csv.Coleta_CSV
 	var remuneracoes csv.Remuneracoes_CSV
 	var folha csv.FolhaDePagamento_CSV
-
 	coleta.ChaveColeta = rc.Coleta.ChaveColeta
 	coleta.Orgao = rc.Coleta.Orgao
 	coleta.Mes = rc.Coleta.Mes
