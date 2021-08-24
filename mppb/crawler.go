@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"os"
 )
@@ -25,11 +26,11 @@ func Crawl(outputPath string, month, year int) ([]string, error) {
 		filePath := fmt.Sprintf("%s/%s-%d-%d.ods", outputPath, typ, month, year)
 		f, err := os.Create(filePath)
 		if err != nil {
-			logError(fmt.Sprintf("error creating file(%s):%q", filePath, err))
+			log.Fatalf(fmt.Sprintf("error creating file(%s):%q", filePath, err))
 		}
 		defer f.Close()
 		if err := download(url, f); err != nil {
-			logError(fmt.Sprintf("error while downloading content: %q", err))
+			log.Fatalf(fmt.Sprintf("error while downloading content: %q", err))
 		}
 		files = append(files, filePath)
 	}

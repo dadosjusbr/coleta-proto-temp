@@ -2,6 +2,8 @@ package main
 
 import (
 	"fmt"
+	"log"
+	"strconv"
 	"strings"
 
 	"github.com/dadosjusbr/proto"
@@ -114,10 +116,10 @@ func getMembros(membros [][]string, mapIndenizacoes map[string][]string, chaveCo
 	for _, membro := range membros {
 		var err error
 		var novoMembro *proto.ContraCheque
-		indenizacoesMembro := getIndenizacaoMembro(membro[0], mapIndenizacoes)
+		indenizacoesMembro := mapIndenizacoes[membro[0]]
 		if novoMembro, err = criaMembro(membro, indenizacoesMembro, chaveColeta, counter, fileName); err != nil {
 			ok = false
-			logError("error na criação de um novo membro %s: %q", fileName, err)
+			log.Fatalf("error na criação de um novo membro %s: %q", fileName, err)
 			continue
 		}
 		counter++
@@ -296,4 +298,30 @@ func containsHeader(headers []string, key string, value int) error {
 		return nil
 	}
 	return fmt.Errorf("couldn't find %s at position %d", key, value)
+}
+
+// parseFloat makes the string with format "xx.xx,xx" able to be parsed by the strconv.ParseFloat and return it parsed.
+func parseFloat(emp []string, key, fileType string) (float64, error) {
+	valueStr := emp[headersMap[fileType][key]]
+	if valueStr == "" {
+		return 0.0, nil
+	} else {
+		valueStr = strings.Trim(valueStr, " ")
+		valueStr = strings.Replace(valueStr, ",", ".", 1)
+		if n := strings.Count(valueStr, "."); n > 1 {
+			valueStr = strings.Replace(valueStr, ".", "", n-1)
+		}
+	}
+	return strconv.ParseFloat(valueStr, 64)
+}
+
+// cleanStrings makes all strings to uppercase and removes N/D fields
+func cleanStrings(raw [][]string) [][]string {
+	for row := range raw {
+		for col := range raw[row] {
+			raw[row][col] = strings.ToUpper(strings.ReplaceAll(strings.ReplaceAll(raw[row][col], "N/D", ""), "\n", " "))
+			raw[row][col] = strings.ReplaceAll(raw[row][col], "  ", " ")
+		}
+	}
+	return raw
 }
