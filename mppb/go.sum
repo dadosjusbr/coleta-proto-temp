@@ -1,3 +1,5 @@
+github.com/dadosjusbr/proto v0.0.0-20210822043952-00b1c9c743fe h1:EVbSEsPM8hIargiBIoBVignjNtqtP8W4mjK5zT+H4GY=
+github.com/dadosjusbr/proto v0.0.0-20210822043952-00b1c9c743fe/go.mod h1:a04KL3nn5wvlJTuoTYggaeokQi3njDyt9L7Ss9EQEJQ=
 github.com/davecgh/go-spew v1.1.0 h1:ZDRjVQ15GmhC3fiQ8ni8+OwkZQO4DARzQgrnXU1Liz8=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/golang/protobuf v1.5.0/go.mod h1:FsONVRAS9T7sI+LIUmWTfcYkHO4aIWwzhcaSAoJOfIk=
