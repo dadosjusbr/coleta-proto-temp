@@ -4,8 +4,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/dadosjusbr/coletores/status"
 	"github.com/dadosjusbr/proto/coleta"
@@ -36,8 +38,25 @@ func main() {
 	}
 
 	csvRc := coletaToCSV(er.Rc)
+	buildedCSV, err := csvRc.Coleta.MarshalCSV()
+	if err != nil {
+		err = status.NewError(status.InvalidParameters, fmt.Errorf("Error creating Coleta CSV sprintf method:%q", err))
+	}
+	fmt.Println(strings.Split(buildedCSV, ","))
 	// Creating CSVs.
-	if err := ToCSVFile([]*csv.Coleta_CSV{csvRc.Coleta}, coletaFileName); err != nil {
+
+	f, err := os.Create(coletaFileName)
+	defer f.Close()
+	if err != nil {
+		log.Fatalln("failed to open file", err)
+	}
+	w := csv.NewWriter(f)
+	err = w.WriteAll(records) // calls Flush internally
+
+	if err != nil {
+		log.Fatal(err)
+	}
+	if err := ToCSVFile(strings.Split(buildedCSV, ","), coletaFileName); err != nil {
 		err = status.NewError(status.InvalidParameters, fmt.Errorf("Error creating Coleta CSV:%q", err))
 		status.ExitFromError(err)
 	}
