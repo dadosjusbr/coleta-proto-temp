@@ -9,6 +9,8 @@ import (
 	"path/filepath"
 	"strings"
 
+	csvLib "encoding/csv"
+
 	"github.com/dadosjusbr/coletores/status"
 	"github.com/dadosjusbr/proto/coleta"
 	"github.com/dadosjusbr/proto/csv"
@@ -42,30 +44,27 @@ func main() {
 	if err != nil {
 		err = status.NewError(status.InvalidParameters, fmt.Errorf("Error creating Coleta CSV sprintf method:%q", err))
 	}
-	fmt.Println(strings.Split(buildedCSV, ","))
-	// Creating CSVs.
 
+	// Creating coleta csv
 	f, err := os.Create(coletaFileName)
 	defer f.Close()
 	if err != nil {
 		log.Fatalln("failed to open file", err)
 	}
-	w := csv.NewWriter(f)
-	err = w.WriteAll(records) // calls Flush internally
+	w := csvLib.NewWriter(f)
 
+	err = w.WriteAll(buildPacoteCSV(buildedCSV)) // calls Flush internally
 	if err != nil {
 		log.Fatal(err)
 	}
-	if err := ToCSVFile(strings.Split(buildedCSV, ","), coletaFileName); err != nil {
-		err = status.NewError(status.InvalidParameters, fmt.Errorf("Error creating Coleta CSV:%q", err))
-		status.ExitFromError(err)
-	}
 
+	// Creating contracheque csv
 	if err := ToCSVFile(csvRc.Folha.ContraCheque, folhaFileName); err != nil {
 		err = status.NewError(status.InvalidParameters, fmt.Errorf("Error creating Folha de pagamento CSV:%q", err))
 		status.ExitFromError(err)
 	}
 
+	// Creating remuneracao csv
 	if err := ToCSVFile(csvRc.Remuneracoes.Remuneracao, remuneracaoFileName); err != nil {
 		err = status.NewError(status.InvalidParameters, fmt.Errorf("Error creating Remuneração CSV:%q", err))
 		status.ExitFromError(err)
@@ -142,4 +141,12 @@ func coletaToCSV(rc coleta.ResultadoColeta) csv.ResultadoColeta_CSV {
 	}
 
 	return csv.ResultadoColeta_CSV{Coleta: &coleta, Remuneracoes: &remuneracoes, Folha: &folha}
+}
+
+func buildPacoteCSV(s string) [][]string {
+	var b [][]string
+	a := strings.Split(s, "\n")
+	b = append(b, strings.Split(a[0], ","))
+	b = append(b, strings.Split(a[1], ","))
+	return b
 }
