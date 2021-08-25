@@ -22,12 +22,10 @@ func main() {
 	month, err := strconv.Atoi(os.Getenv("MONTH"))
 	if err != nil {
 		log.Fatalf("Invalid month (\"%s\"): %q", os.Getenv("MONTH"), err)
-		os.Exit(1)
 	}
 	year, err := strconv.Atoi(os.Getenv("YEAR"))
 	if err != nil {
 		log.Fatalf("Invalid year (\"%s\"): %q", os.Getenv("YEAR"), err)
-		os.Exit(1)
 	}
 	outputFolder := os.Getenv("OUTPUT_FOLDER")
 	if outputFolder == "" {
@@ -36,13 +34,11 @@ func main() {
 
 	if err := os.Mkdir(outputFolder, os.ModePerm); err != nil && !os.IsExist(err) {
 		log.Fatalf("Error creating output folder(%s): %q", outputFolder, err)
-		os.Exit(1)
 	}
 
 	files, err := Crawl(outputFolder, month, year)
 	if err != nil {
 		log.Fatalf("Crawler error: %q", err)
-		os.Exit(1)
 	}
 
 	chaveColeta := proto.IDColeta(agenciaID, month, year)
@@ -50,7 +46,6 @@ func main() {
 	folha, parseErr := Parse(files, chaveColeta)
 	if parseErr != nil {
 		log.Fatalf("Parsing error: %q", parseErr)
-		os.Exit(1)
 	}
 
 	coleta := proto.Coleta{
