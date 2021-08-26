@@ -43,6 +43,7 @@ func main() {
 	buildedCSV, err := csvRc.Coleta.MarshalCSV()
 	if err != nil {
 		err = status.NewError(status.InvalidParameters, fmt.Errorf("Error creating Coleta CSV sprintf method:%q", err))
+		status.ExitFromError(err)
 	}
 
 	// Creating coleta csv
@@ -53,9 +54,9 @@ func main() {
 	}
 	w := csvLib.NewWriter(f)
 
-	err = w.WriteAll(buildPacoteCSV(buildedCSV)) // calls Flush internally
-	if err != nil {
-		log.Fatal(err)
+	if err := w.WriteAll(buildPacoteCSV(buildedCSV)); err != nil { // calls Flush internally
+		err = status.NewError(status.SystemError, fmt.Errorf("Error writing folha de pagamento CSV:%q", err))
+		status.ExitFromError(err)
 	}
 
 	// Creating contracheque csv
