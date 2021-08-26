@@ -47,17 +47,17 @@ func main() {
 
 		switch v {
 		case "coleta":
-			if err := pkg.GetResource(v).Cast(&[]csvProto.Coleta{}, csv.LoadHeaders()); err != nil {
+			if err := pkg.GetResource(v).Cast(&[]csvProto.Coleta_CSV{}, csv.LoadHeaders()); err != nil {
 				err = status.NewError(status.InvalidInput, fmt.Errorf("Error validating datapackage (%s):%q", er.Pr.Package, err))
 				status.ExitFromError(err)
 			}
 		case "remuneracao":
-			if err := pkg.GetResource(v).Cast(&[]csvProto.Remuneracao{}, csv.LoadHeaders()); err != nil {
+			if err := pkg.GetResource(v).Cast(&[]csvProto.Remuneracao_CSV{}, csv.LoadHeaders()); err != nil {
 				err = status.NewError(status.InvalidInput, fmt.Errorf("Error validating datapackage (%s):%q", er.Pr.Package, err))
 				status.ExitFromError(err)
 			}
 		default:
-			if err := pkg.GetResource(v).Cast(&[]csvProto.ContraCheque{}, csv.LoadHeaders()); err != nil {
+			if err := pkg.GetResource(v).Cast(&[]csvProto.ContraCheque_CSV{}, csv.LoadHeaders()); err != nil {
 				err = status.NewError(status.InvalidInput, fmt.Errorf("Error validating datapackage (%s):%q", er.Pr.Package, err))
 				status.ExitFromError(err)
 			}
