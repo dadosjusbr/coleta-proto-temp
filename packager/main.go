@@ -4,10 +4,16 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"os"
 	"path/filepath"
+	"strings"
+
+	csvLib "encoding/csv"
 
 	"github.com/dadosjusbr/coletores/status"
+	"github.com/dadosjusbr/proto/coleta"
+	"github.com/dadosjusbr/proto/csv"
 	"github.com/frictionlessdata/datapackage-go/datapackage"
 )
 
@@ -33,18 +39,34 @@ func main() {
 		status.ExitFromError(status.NewError(5, fmt.Errorf("Error unmarshaling crawling resul from STDIN: %q", err)))
 	}
 
-	// Creating CSVs.
-	if err := ToCSVFile([]*Coleta{er.Rc.Coleta}, coletaFileName); err != nil {
-		err = status.NewError(status.InvalidParameters, fmt.Errorf("Error creating Coleta CSV:%q", err))
+	csvRc := coletaToCSV(er.Rc)
+	buildedCSV, err := csvRc.Coleta.MarshalCSV()
+	if err != nil {
+		err = status.NewError(status.InvalidParameters, fmt.Errorf("Error creating Coleta CSV sprintf method:%q", err))
 		status.ExitFromError(err)
 	}
 
-	if err := ToCSVFile(er.Rc.Folha.ContraCheque, folhaFileName); err != nil {
+	// Creating coleta csv
+	f, err := os.Create(coletaFileName)
+	defer f.Close()
+	if err != nil {
+		log.Fatalln("failed to open file", err)
+	}
+	w := csvLib.NewWriter(f)
+
+	if err := w.WriteAll(buildPacoteCSV(buildedCSV)); err != nil { // calls Flush internally
+		err = status.NewError(status.SystemError, fmt.Errorf("Error writing folha de pagamento CSV:%q", err))
+		status.ExitFromError(err)
+	}
+
+	// Creating contracheque csv
+	if err := ToCSVFile(csvRc.Folha.ContraCheque, folhaFileName); err != nil {
 		err = status.NewError(status.InvalidParameters, fmt.Errorf("Error creating Folha de pagamento CSV:%q", err))
 		status.ExitFromError(err)
 	}
 
-	if err := ToCSVFile(er.Rc.Remuneracoes.Remuneracao, remuneracaoFileName); err != nil {
+	// Creating remuneracao csv
+	if err := ToCSVFile(csvRc.Remuneracoes.Remuneracao, remuneracaoFileName); err != nil {
 		err = status.NewError(status.InvalidParameters, fmt.Errorf("Error creating Remuneração CSV:%q", err))
 		status.ExitFromError(err)
 	}
@@ -83,4 +105,49 @@ func main() {
 		status.ExitFromError(err)
 	}
 	fmt.Println(string(b))
+}
+
+func coletaToCSV(rc coleta.ResultadoColeta) csv.ResultadoColeta_CSV {
+	var coleta csv.Coleta_CSV
+	var remuneracoes csv.Remuneracoes_CSV
+	var folha csv.FolhaDePagamento_CSV
+	coleta.ChaveColeta = rc.Coleta.ChaveColeta
+	coleta.Orgao = rc.Coleta.Orgao
+	coleta.Mes = rc.Coleta.Mes
+	coleta.Ano = rc.Coleta.Ano
+	coleta.TimestampColeta = rc.Coleta.TimestampColeta
+	coleta.RepositorioColetor = rc.Coleta.RepositorioColetor
+	coleta.VersaoColetor = rc.Coleta.VersaoColetor
+	coleta.DirColetor = rc.Coleta.DirColetor
+	for _, v := range rc.Folha.ContraCheque {
+		var contraCheque csv.ContraCheque_CSV
+		contraCheque.IdContraCheque = v.IdContraCheque
+		contraCheque.ChaveColeta = v.ChaveColeta
+		contraCheque.Nome = v.Nome
+		contraCheque.Matricula = v.Matricula
+		contraCheque.Funcao = v.Funcao
+		contraCheque.LocalTrabalho = v.LocalTrabalho
+		contraCheque.Tipo = csv.ContraCheque_CSV_Tipo(v.Tipo)
+		for _, k := range v.Remuneracoes.Remuneracao {
+			var remuneracao csv.Remuneracao_CSV
+			remuneracao.IdContraCheque = v.IdContraCheque
+			remuneracao.ChaveColeta = v.ChaveColeta
+			remuneracao.Natureza = csv.Remuneracao_CSV_Natureza(k.Natureza)
+			remuneracao.Categoria = k.Categoria
+			remuneracao.Item = k.Item
+			remuneracao.Valor = k.Valor
+			remuneracoes.Remuneracao = append(remuneracoes.Remuneracao, &remuneracao)
+		}
+		folha.ContraCheque = append(folha.ContraCheque, &contraCheque)
+	}
+
+	return csv.ResultadoColeta_CSV{Coleta: &coleta, Remuneracoes: &remuneracoes, Folha: &folha}
+}
+
+func buildPacoteCSV(s string) [][]string {
+	var b [][]string
+	a := strings.Split(s, "\n")
+	b = append(b, strings.Split(a[0], ","))
+	b = append(b, strings.Split(a[1], ","))
+	return b
 }
