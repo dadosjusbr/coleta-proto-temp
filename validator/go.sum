@@ -2,6 +2,10 @@ github.com/dadosjusbr/coletores v0.0.0-20201122053603-68a0eed3d9ad h1:+LCxb+SflH
 github.com/dadosjusbr/coletores v0.0.0-20201122053603-68a0eed3d9ad/go.mod h1:/MYAexbepJrBZGhKACp2ZAbRSrexfvccln0ig/0ci6E=
 github.com/dadosjusbr/coletores v0.0.0-20210816132350-38367e72feac h1:j/N/br8YrsP4E8IgQAZYV6Rj9AYCX0KOdPloy9Yg00w=
 github.com/dadosjusbr/coletores v0.0.0-20210816132350-38367e72feac/go.mod h1:m9opDykSJIwaf+veICpleWMranaaWEbx5RNQhKZAgXU=
+github.com/dadosjusbr/proto v0.0.0-20210822200441-53e8a090a0ce h1:t4pe8bI8VpCl2agiSGR8EMpokMRwpejdjcgJ0/4agH0=
+github.com/dadosjusbr/proto v0.0.0-20210822200441-53e8a090a0ce/go.mod h1:a04KL3nn5wvlJTuoTYggaeokQi3njDyt9L7Ss9EQEJQ=
+github.com/dadosjusbr/proto v0.0.0-20210825040333-015e41bd6fc9 h1:giT1IZdsGEyEB5p88ISF/TpH5JgwoDF4lBRaGz4tKtM=
+github.com/dadosjusbr/proto v0.0.0-20210825040333-015e41bd6fc9/go.mod h1:a04KL3nn5wvlJTuoTYggaeokQi3njDyt9L7Ss9EQEJQ=
 github.com/frictionlessdata/datapackage-go v0.0.0-20200221095509-05bdddc8613c h1:RjUoBYk3ig0YAU/udNmFwuh5MmOGUYDKUMN0G8+1XA8=
 github.com/frictionlessdata/datapackage-go v0.0.0-20200221095509-05bdddc8613c/go.mod h1:d6CbzM3Xw9JOsz0AemqOX8DJa315xow0hsw6eTgiDKE=
 github.com/frictionlessdata/datapackage-go v0.0.0-20210810130302-98883c9586e9 h1:gwjq5qszD6CxbHQpBzmLH/DXztQeeVszCDVKsrBW/ww=
