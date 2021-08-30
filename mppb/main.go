@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"strconv"
 
 	"github.com/dadosjusbr/proto"
+	"github.com/dadosjusbr/proto/coleta"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -19,14 +19,17 @@ const (
 )
 
 func main() {
-	month, err := strconv.Atoi(os.Getenv("MONTH"))
-	if err != nil {
-		log.Fatalf("Invalid month (\"%s\"): %q", os.Getenv("MONTH"), err)
-	}
-	year, err := strconv.Atoi(os.Getenv("YEAR"))
-	if err != nil {
-		log.Fatalf("Invalid year (\"%s\"): %q", os.Getenv("YEAR"), err)
-	}
+	/*
+		month, err := strconv.Atoi(os.Getenv("MONTH"))
+		if err != nil {
+			log.Fatalf("Invalid month (\"%s\"): %q", os.Getenv("MONTH"), err)
+		}
+		year, err := strconv.Atoi(os.Getenv("YEAR"))
+		if err != nil {
+			log.Fatalf("Invalid year (\"%s\"): %q", os.Getenv("YEAR"), err)
+		}*/
+	month := 3
+	year := 2020
 	outputFolder := os.Getenv("OUTPUT_FOLDER")
 	if outputFolder == "" {
 		outputFolder = "./output"
@@ -48,7 +51,7 @@ func main() {
 		log.Fatalf("Parsing error: %q", parseErr)
 	}
 
-	coleta := proto.Coleta{
+	colRes := coleta.Coleta{
 		ChaveColeta:        chaveColeta,
 		Orgao:              agenciaID,
 		Mes:                int32(month),
@@ -57,9 +60,11 @@ func main() {
 		RepositorioColetor: repColetor,
 		VersaoColetor:      gitCommit,
 		DirColetor:         agenciaID,
+		Arquivos:           files,
 	}
-	rc := proto.ResultadoColeta{
-		Coleta: &coleta,
+
+	rc := coleta.ResultadoColeta{
+		Coleta: &colRes,
 		Folha:  folha,
 	}
 

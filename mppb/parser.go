@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/dadosjusbr/proto"
+	"github.com/dadosjusbr/proto/coleta"
 	"github.com/knieriem/odf/ods"
 )
 
@@ -63,8 +63,8 @@ var headersMap = map[string]map[string]int{
 }
 
 // Parse parses the ods tables.
-func Parse(arquivos []string, chave_coleta string) (*proto.FolhaDePagamento, error) {
-	var folha []*proto.ContraCheque
+func Parse(arquivos []string, chave_coleta string) (*coleta.FolhaDePagamento, error) {
+	var folha []*coleta.ContraCheque
 	var parseErr bool
 	indenizacoes, err := getDadosIndenizacoes(arquivos)
 	if err != nil {
@@ -93,9 +93,9 @@ func Parse(arquivos []string, chave_coleta string) (*proto.FolhaDePagamento, err
 		folha = append(folha, contra_cheque...)
 	}
 	if parseErr {
-		return &proto.FolhaDePagamento{ContraCheque: folha}, fmt.Errorf("parse error")
+		return &coleta.FolhaDePagamento{ContraCheque: folha}, fmt.Errorf("parse error")
 	}
-	return &proto.FolhaDePagamento{ContraCheque: folha}, nil
+	return &coleta.FolhaDePagamento{ContraCheque: folha}, nil
 }
 
 // getDadosIndenizacoes retorna a planilha de indenizações em forma de matriz
@@ -109,13 +109,13 @@ func getDadosIndenizacoes(files []string) ([][]string, error) {
 }
 
 // getMembros retorna o array com a folha de pagamento da coleta.
-func getMembros(membros [][]string, mapIndenizacoes map[string][]string, chaveColeta string, fileName string) ([]*proto.ContraCheque, bool) {
+func getMembros(membros [][]string, mapIndenizacoes map[string][]string, chaveColeta string, fileName string) ([]*coleta.ContraCheque, bool) {
 	ok := true
-	var contraCheque []*proto.ContraCheque
+	var contraCheque []*coleta.ContraCheque
 	counter := 1
 	for _, membro := range membros {
 		var err error
-		var novoMembro *proto.ContraCheque
+		var novoMembro *coleta.ContraCheque
 		indenizacoesMembro := mapIndenizacoes[membro[0]]
 		if novoMembro, err = criaMembro(membro, indenizacoesMembro, chaveColeta, counter, fileName); err != nil {
 			ok = false
@@ -137,8 +137,8 @@ func getIndenizacaoMembro(regNum string, mapIndenizacoes map[string][]string) []
 }
 
 // criaMembro monta um contracheque de um único membro.
-func criaMembro(membro []string, indenizacoes []string, chaveColeta string, counter int, fileName string) (*proto.ContraCheque, error) {
-	var novoMembro proto.ContraCheque
+func criaMembro(membro []string, indenizacoes []string, chaveColeta string, counter int, fileName string) (*coleta.ContraCheque, error) {
+	var novoMembro coleta.ContraCheque
 	const REMUNERACOES_MATRICULA = 0
 	const REMUNERACOES_NOME = 1
 	const REMUNERACOES_CARGO = 2
@@ -149,44 +149,44 @@ func criaMembro(membro []string, indenizacoes []string, chaveColeta string, coun
 	novoMembro.Nome = membro[REMUNERACOES_NOME]
 	novoMembro.Funcao = membro[REMUNERACOES_CARGO]
 	novoMembro.LocalTrabalho = membro[REMUNERACOES_LOTACAO]
-	novoMembro.Tipo = proto.ContraCheque_MEMBRO
+	novoMembro.Tipo = coleta.ContraCheque_MEMBRO
 	novoMembro.Ativo = true
 	remuneracoes, err := processaRemuneracao(membro, indenizacoes)
 	if err != nil {
 		return nil, fmt.Errorf("error na transformação das remunerações: %q", err)
 	}
-	novoMembro.Remuneracoes = &proto.Remuneracoes{Remuneracao: remuneracoes}
+	novoMembro.Remuneracoes = &coleta.Remuneracoes{Remuneracao: remuneracoes}
 	return &novoMembro, nil
 }
 
 // processaRemuneracao processa todas as remunerações de um único membro.
-func processaRemuneracao(membro []string, indenizacoes []string) ([]*proto.Remuneracao, error) {
-	var remuneracoes []*proto.Remuneracao
-	temp, err := criaRemuneracao(indenizacoes, proto.Remuneracao_R, INDENIZACOES_VERBAS_INDENIZATORIAS_1)
+func processaRemuneracao(membro []string, indenizacoes []string) ([]*coleta.Remuneracao, error) {
+	var remuneracoes []*coleta.Remuneracao
+	temp, err := criaRemuneracao(indenizacoes, coleta.Remuneracao_R, INDENIZACOES_VERBAS_INDENIZATORIAS_1, coleta.Remuneracao_O)
 	if err != nil {
 		return nil, fmt.Errorf("erro processando verbas indenizatorias 1: %q", err)
 	}
 	remuneracoes = append(remuneracoes, temp...)
 
-	temp, err = criaRemuneracao(indenizacoes, proto.Remuneracao_R, INDENIZACOES_OUTRAS_REMUNERACOES_TEMPORARIAS_2)
+	temp, err = criaRemuneracao(indenizacoes, coleta.Remuneracao_R, INDENIZACOES_OUTRAS_REMUNERACOES_TEMPORARIAS_2, coleta.Remuneracao_O)
 	if err != nil {
 		return nil, fmt.Errorf("erro processando outras remuneracoes temporarias 2: %q", err)
 	}
 	remuneracoes = append(remuneracoes, temp...)
 
-	temp, err = criaRemuneracao(membro, proto.Remuneracao_R, REMUNERACAO_BASICA)
+	temp, err = criaRemuneracao(membro, coleta.Remuneracao_R, REMUNERACAO_BASICA, coleta.Remuneracao_B)
 	if err != nil {
 		return nil, fmt.Errorf("erro processando remuneracao básica: %q", err)
 	}
 	remuneracoes = append(remuneracoes, temp...)
 
-	temp, err = criaRemuneracao(membro, proto.Remuneracao_R, REMUNERACAO_EVENTUAL_TEMPORARIA)
+	temp, err = criaRemuneracao(membro, coleta.Remuneracao_R, REMUNERACAO_EVENTUAL_TEMPORARIA, coleta.Remuneracao_O)
 	if err != nil {
 		return nil, fmt.Errorf("erro processando remuneracao eventual temporaria: %q", err)
 	}
 	remuneracoes = append(remuneracoes, temp...)
 
-	temp, err = criaRemuneracao(membro, proto.Remuneracao_D, OBRIGATORIOS_LEGAIS)
+	temp, err = criaRemuneracao(membro, coleta.Remuneracao_D, OBRIGATORIOS_LEGAIS, coleta.Remuneracao_O)
 	if err != nil {
 		return nil, fmt.Errorf("erro processando erro processando obrigatório/legais: %q", err)
 	}
@@ -196,19 +196,20 @@ func processaRemuneracao(membro []string, indenizacoes []string) ([]*proto.Remun
 }
 
 // criaRemuneracao monta as remuneracoes de um membro, a partir de cada categoria.
-func criaRemuneracao(planilha []string, natureza proto.Remuneracao_Natureza, categoria string) ([]*proto.Remuneracao, error) {
-	var remuneracoes []*proto.Remuneracao
+func criaRemuneracao(planilha []string, natureza coleta.Remuneracao_Natureza, categoria string, tipoReceita coleta.Remuneracao_TipoReceita) ([]*coleta.Remuneracao, error) {
+	var remuneracoes []*coleta.Remuneracao
 	var err error
 	for key := range headersMap[categoria] {
-		var remuneracao proto.Remuneracao
+		var remuneracao coleta.Remuneracao
 		remuneracao.Natureza = natureza
 		remuneracao.Categoria = categoria
 		remuneracao.Item = key
 		remuneracao.Valor, err = parseFloat(planilha, key, categoria)
+		remuneracao.TipoReceita = tipoReceita
 		if err != nil {
 			return nil, fmt.Errorf("error buscando o valor na planilha: %q", err)
 		}
-		if natureza == proto.Remuneracao_D {
+		if natureza == coleta.Remuneracao_D {
 			remuneracao.Valor = remuneracao.Valor * (-1)
 		}
 		remuneracoes = append(remuneracoes, &remuneracao)
