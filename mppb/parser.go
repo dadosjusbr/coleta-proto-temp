@@ -191,7 +191,6 @@ func processaRemuneracao(membro []string, indenizacoes []string) ([]*coleta.Remu
 		return nil, fmt.Errorf("erro processando erro processando obrigatório/legais: %q", err)
 	}
 	remuneracoes = append(remuneracoes, temp...)
-
 	return remuneracoes, nil
 }
 
