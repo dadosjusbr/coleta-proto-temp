@@ -40,12 +40,12 @@ func main() {
 	}
 
 	csvRc := coletaToCSV(er.Rc)
+
 	buildedCSV, err := csvRc.Coleta.MarshalCSV()
 	if err != nil {
 		err = status.NewError(status.InvalidParameters, fmt.Errorf("Error creating Coleta CSV sprintf method:%q", err))
 		status.ExitFromError(err)
 	}
-
 	// Creating coleta csv
 	f, err := os.Create(coletaFileName)
 	defer f.Close()

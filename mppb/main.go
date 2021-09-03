@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strconv"
 
 	"github.com/dadosjusbr/proto"
 	"github.com/dadosjusbr/proto/coleta"
@@ -19,17 +20,16 @@ const (
 )
 
 func main() {
-	/*
-		month, err := strconv.Atoi(os.Getenv("MONTH"))
-		if err != nil {
-			log.Fatalf("Invalid month (\"%s\"): %q", os.Getenv("MONTH"), err)
-		}
-		year, err := strconv.Atoi(os.Getenv("YEAR"))
-		if err != nil {
-			log.Fatalf("Invalid year (\"%s\"): %q", os.Getenv("YEAR"), err)
-		}*/
-	month := 3
-	year := 2020
+
+	month, err := strconv.Atoi(os.Getenv("MONTH"))
+	if err != nil {
+		log.Fatalf("Invalid month (\"%s\"): %q", os.Getenv("MONTH"), err)
+	}
+	year, err := strconv.Atoi(os.Getenv("YEAR"))
+	if err != nil {
+		log.Fatalf("Invalid year (\"%s\"): %q", os.Getenv("YEAR"), err)
+	}
+
 	outputFolder := os.Getenv("OUTPUT_FOLDER")
 	if outputFolder == "" {
 		outputFolder = "./output"
