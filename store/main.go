@@ -77,8 +77,8 @@ func main() {
 		CrawlingTimestamp: er.Rc.Coleta.TimestampColeta,
 		Package:           packBackup,
 	}
-	if er.Cr.ProcInfo.ExitStatus != 0 {
-		agmi.ProcInfo = &er.Cr.ProcInfo
+	if er.Rc.Procinfo.Status != 0 {
+		agmi.ProcInfo = er.Rc.Procinfo
 	}
 	if err = client.Store(agmi); err != nil {
 		status.ExitFromError(status.NewError(2, fmt.Errorf("error trying to store agmi: %v", err)))

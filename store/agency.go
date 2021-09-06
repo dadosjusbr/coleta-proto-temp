@@ -16,7 +16,6 @@
 package main
 
 import (
-	"github.com/dadosjusbr/coletores"
 	"github.com/dadosjusbr/proto/coleta"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
@@ -33,18 +32,17 @@ type Agency struct {
 
 // AgencyMonthlyInfo A Struct containing a snapshot of a agency in a month.
 type AgencyMonthlyInfo struct {
-	AgencyID          string                 `json:"aid,omitempty" bson:"aid,omitempty"`
-	Month             int                    `json:"month,omitempty" bson:"month,omitempty"`
-	Year              int                    `json:"year,omitempty" bson:"year,omitempty"`
-	Backups           []Backup               `json:"backups,omitempty" bson:"backups,omitempty"`
-	Summary           Summary                `json:"summary,omitempty" bson:"summary,omitempty"`
-	Employee          coleta.ResultadoColeta `json:"employee,omitempty" bson:"employee,omitempty"`
-	CrawlerID         string                 `json:"crawlerid,omitempty" bson:"crawlerid,omitempty"`
-	CrawlerVersion    string                 `json:"crawlerver,omitempty" bson:"crawlerver,omitempty"`
-	CrawlerDir        string                 `json:"crawlerdir,omitempty" bson:"crawlerdir,omitempty"`
-	CrawlingTimestamp *timestamppb.Timestamp `json:"ts,omitempty" bson:"ts,omitempty"`             // Crawling moment (always UTC)
-	ProcInfo          *coletores.ProcInfo    `json:"procinfo,omitempty" bson:"procinfo,omitempty"` // Making this a pointer because it should be an optional field due to backwards compatibility.
-	Package           *Backup                `json:"package,omitempty" bson:"package,omitempty"`   // Making this a pointer because it should be an optional field due to backwards compatibility.
+	AgencyID          string                  `json:"aid,omitempty" bson:"aid,omitempty"`
+	Month             int                     `json:"month,omitempty" bson:"month,omitempty"`
+	Year              int                     `json:"year,omitempty" bson:"year,omitempty"`
+	Backups           []Backup                `json:"backups,omitempty" bson:"backups,omitempty"`
+	Summary           Summary                 `json:"summary,omitempty" bson:"summary,omitempty"`
+	CrawlerID         string                  `json:"crawlerid,omitempty" bson:"crawlerid,omitempty"`
+	CrawlerVersion    string                  `json:"crawlerver,omitempty" bson:"crawlerver,omitempty"`
+	CrawlerDir        string                  `json:"crawlerdir,omitempty" bson:"crawlerdir,omitempty"`
+	CrawlingTimestamp *timestamppb.Timestamp  `json:"ts,omitempty" bson:"ts,omitempty"`             // Crawling moment (always UTC)
+	ProcInfo          *coleta.ProcInfo        `json:"procinfo,omitempty" bson:"procinfo,omitempty"` // Making this a pointer because it should be an optional field due to backwards compatibility.
+	Package           *Backup                 `json:"package,omitempty" bson:"package,omitempty"`   // Making this a pointer because it should be an optional field due to backwards compatibility.
 }
 
 // Backup contains the URL to download a file and a hash to track if in the future will be changes in the file.
