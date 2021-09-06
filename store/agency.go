@@ -37,7 +37,6 @@ type AgencyMonthlyInfo struct {
 	Year              int                     `json:"year,omitempty" bson:"year,omitempty"`
 	Backups           []Backup                `json:"backups,omitempty" bson:"backups,omitempty"`
 	Summary           Summary                 `json:"summary,omitempty" bson:"summary,omitempty"`
-	Employee          coleta.FolhaDePagamento `json:"employee,omitempty" bson:"employee,omitempty"`
 	CrawlerID         string                  `json:"crawlerid,omitempty" bson:"crawlerid,omitempty"`
 	CrawlerVersion    string                  `json:"crawlerver,omitempty" bson:"crawlerver,omitempty"`
 	CrawlerDir        string                  `json:"crawlerdir,omitempty" bson:"crawlerdir,omitempty"`

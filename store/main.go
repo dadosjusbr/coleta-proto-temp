@@ -73,7 +73,6 @@ func main() {
 		CrawlerVersion:    er.Rc.Coleta.VersaoColetor,
 		CrawlerDir:        er.Rc.Coleta.DirColetor,
 		Summary:           summary(er.Rc.Folha.ContraCheque),
-		Employee:          *er.Rc.Folha,
 		Backups:           backup,
 		CrawlingTimestamp: er.Rc.Coleta.TimestampColeta,
 		Package:           packBackup,
