@@ -85,6 +85,7 @@ def parse_employees(fn, chave_coleta):
             membro.ativo = True
             membro.remuneracoes.CopyFrom(cria_remuneracao(row, CONTRACHEQUE))
             employees[name] = membro
+            counter += 1
     return employees
 
 def cria_remuneracao(row,  categoria):
