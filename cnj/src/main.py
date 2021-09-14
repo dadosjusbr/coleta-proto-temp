@@ -1,3 +1,4 @@
+# coding: utf8
 import sys
 import os
 import crawler
@@ -6,6 +7,10 @@ import json
 import coleta_pb2 as Coleta
 from google.protobuf.timestamp_pb2 import Timestamp
 from google.protobuf.json_format import MessageToJson
+from google.protobuf.json_format import MessageToDict
+
+
+
 
 if('COURT' in os.environ):
     court = os.environ['COURT']
@@ -69,8 +74,9 @@ def main():
     rc = Coleta.ResultadoColeta()
     rc.folha.CopyFrom(folha)
     rc.coleta.CopyFrom(coleta)
-    print(MessageToJson(rc))
-    #print(json.dumps({'rc': rc}, ensure_ascii=False))
+    #print(MessageToJson(rc).decode("utf-8"))
+    rc_dict = MessageToDict(rc)
+    print(json.dumps({'rc': rc_dict}, ensure_ascii=False))
 
 
 if __name__ == '__main__':
