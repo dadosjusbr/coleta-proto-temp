@@ -8,6 +8,11 @@ CONTRACHEQUE = 'contracheque'
 INDENIZACOES = 'indenizações'
 DIREITOS_EVENTUAIS = 'direitos-eventuais'
 DIREITOS_PESSOAIS = '-direitos-pessoais'
+MEMBRO = 0
+RECEITA = 0
+DESPESA = 1
+BASE = 0
+OUTROS = 1
 
 HEADERS = {
     CONTRACHEQUE: {
@@ -99,21 +104,21 @@ def cria_remuneracao(row,  categoria):
             remuneracao.item = row[items[i+1][1]]
             remuneracao.valor = float(row[value])
             remuneracao.categoria = categoria
-            remuneracao.tipo_receita = Coleta.Remuneracao.TipoReceita.O
+            remuneracao.tipo_receita = Coleta.Remuneracao.TipoReceita.Value("O")
             continue
         elif 'Detalhe' in key:
             continue
         remuneracao = Coleta.Remuneracao()
-        remuneracao.natureza = Coleta.Remuneracao.Natureza.R
+        remuneracao.natureza = Coleta.Remuneracao.Natureza.Value("R")
         remuneracao.categoria = categoria
         remuneracao.item = key
         remuneracao.valor = float(row[value])
-        remuneracao.tipo_receita = Coleta.Remuneracao.TipoReceita.O
+        remuneracao.tipo_receita = Coleta.Remuneracao.TipoReceita.Value("O")
         if categoria == CONTRACHEQUE and value == 3:
-            remuneracao.tipo_receita = Coleta.Remuneracao.TipoReceita.B
+            remuneracao.tipo_receita = Coleta.Remuneracao.TipoReceita.Value("B")
         if categoria == CONTRACHEQUE and value in [8,9,10,11]:
             remuneracao.valor = remuneracao.valor * (-1)
-            remuneracao.natureza = Coleta.Remuneracao.Natureza.R
+            remuneracao.natureza = Coleta.Remuneracao.Natureza.Value("D")
 		
         remu_array.remuneracao.append(remuneracao)
     return remu_array

@@ -2,13 +2,12 @@
 import sys
 import os
 import crawler
+import time
 import parser
 import json
 import coleta_pb2 as Coleta
 from google.protobuf.timestamp_pb2 import Timestamp
-from google.protobuf.json_format import MessageToJson
 from google.protobuf.json_format import MessageToDict
-
 
 
 
@@ -60,6 +59,11 @@ def main():
     coleta.orgao = court.lower()
     coleta.mes = int(month)
     coleta.ano = int(year)
+    
+    #now = time.time()
+    #seconds = int(now)
+    #nanos = int((now - seconds) * 10**9)
+    #timestamp = Timestamp(seconds=seconds, nanos=nanos)
     timestamp = Timestamp()
     timestamp.GetCurrentTime()
     coleta.timestamp_coleta.CopyFrom(timestamp)
@@ -75,9 +79,35 @@ def main():
     rc.folha.CopyFrom(folha)
     rc.coleta.CopyFrom(coleta)
     #print(MessageToJson(rc).decode("utf-8"))
-    rc_dict = MessageToDict(rc)
-    print(json.dumps({'rc': rc_dict}, ensure_ascii=False))
-
+    rc_dict = MessageToDict(rc, preserving_proto_field_name=True, use_integers_for_enums= True)
+    print(rc_dict['coleta']['timestamp_coleta'])
+    print(json.dumps({'coleta': rc_dict['coleta'], 'folha': rc_dict['folha']}, ensure_ascii=False))
+    
 
 if __name__ == '__main__':
     main()
+
+def MessageToDict(message):
+    messageDict = {}
+
+    for descriptor in message.DESCRIPTOR.fields:
+        key = descriptor.name
+        value = getattr(message, descriptor.name)
+
+        if descriptor.label == descriptor.LABEL_REPEATED:
+            messageList = []
+
+            for subMessage in value:
+                if descriptor.type == descriptor.TYPE_MESSAGE:
+                    messageList.append(MessageToDict(subMessage))
+                else:
+                    messageList.append(subMessage)
+
+            messageDict[key] = messageList
+        else:
+            if descriptor.type == descriptor.TYPE_MESSAGE:
+                messageDict[key] = MessageToDict(value)
+            else:
+                messageDict[key] = value
+
+    return messageDict

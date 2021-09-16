@@ -1,15 +1,16 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"log"
 	"os"
-	"strconv"
 
 	"github.com/dadosjusbr/proto"
 	"github.com/dadosjusbr/proto/coleta"
 	"google.golang.org/protobuf/types/known/timestamppb"
+	
+	"google.golang.org/protobuf/encoding/protojson"
+
 )
 
 var gitCommit string
@@ -20,7 +21,7 @@ const (
 )
 
 func main() {
-
+	/*
 	month, err := strconv.Atoi(os.Getenv("MONTH"))
 	if err != nil {
 		log.Fatalf("Invalid month (\"%s\"): %q", os.Getenv("MONTH"), err)
@@ -29,7 +30,8 @@ func main() {
 	if err != nil {
 		log.Fatalf("Invalid year (\"%s\"): %q", os.Getenv("YEAR"), err)
 	}
-
+	*/
+	month, year := 2, 2020
 	outputFolder := os.Getenv("OUTPUT_FOLDER")
 	if outputFolder == "" {
 		outputFolder = "./output"
@@ -67,11 +69,21 @@ func main() {
 		Coleta: &colRes,
 		Folha:  folha,
 	}
-
+	m := protojson.MarshalOptions{
+		Indent:          "  ",
+		EmitUnpopulated: true,
+		UseProtoNames: true,
+		UseEnumNumbers: true,
+	}
+	jsonBytes, _ := m.Marshal(&rc)
+	fmt.Println(string(jsonBytes))
+	/*
 	b, err := json.MarshalIndent(rc, "", "  ")
 	if err != nil {
 		log.Fatalf("JSON marshaling error: %q", err)
 		os.Exit(1)
 	}
+	
 	fmt.Printf("%s", string(b))
+	*/
 }
