@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -15,6 +16,7 @@ import (
 	"github.com/dadosjusbr/proto/coleta"
 	"github.com/dadosjusbr/proto/csv"
 	"github.com/frictionlessdata/datapackage-go/datapackage"
+	"github.com/golang/protobuf/jsonpb"
 )
 
 const (
@@ -31,11 +33,13 @@ func main() {
 		outputPath = "./"
 	}
 	var er ExecutionResult
-	erIN, err := ioutil.ReadAll(os.Stdin)
-	if err != nil {
-		status.ExitFromError(status.NewError(4, fmt.Errorf("Error reading crawling result: %q", err)))
-	}
-	if err = json.Unmarshal(erIN, &er.Rc); err != nil {
+	/*
+		erIN, err := ioutil.ReadAll(os.Stdin)
+		if err != nil {
+			status.ExitFromError(status.NewError(4, fmt.Errorf("Error reading crawling result: %q", err)))
+		}
+	*/
+	if err := jsonpb.Unmarshal(bufio.NewReader(os.Stdin), &er.Rc); err != nil {
 		status.ExitFromError(status.NewError(5, fmt.Errorf("Error unmarshaling crawling resul from STDIN: %q", err)))
 	}
 
