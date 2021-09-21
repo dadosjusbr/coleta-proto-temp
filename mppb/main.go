@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"log"
 	"os"
@@ -10,6 +9,8 @@ import (
 	"github.com/dadosjusbr/proto"
 	"github.com/dadosjusbr/proto/coleta"
 	"google.golang.org/protobuf/types/known/timestamppb"
+
+	"google.golang.org/protobuf/encoding/protojson"
 )
 
 var gitCommit string
@@ -67,11 +68,13 @@ func main() {
 		Coleta: &colRes,
 		Folha:  folha,
 	}
-
-	b, err := json.MarshalIndent(rc, "", "  ")
-	if err != nil {
-		log.Fatalf("JSON marshaling error: %q", err)
-		os.Exit(1)
+	m := protojson.MarshalOptions{
+		Indent:          "  ",
+		EmitUnpopulated: true,
+		UseProtoNames:   true,
+		UseEnumNumbers:  true,
 	}
-	fmt.Printf("%s", string(b))
+	jsonBytes, _ := m.Marshal(&rc)
+	fmt.Println(string(jsonBytes))
+
 }
