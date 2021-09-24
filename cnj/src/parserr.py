@@ -2,7 +2,7 @@
 import pandas as pd
 import sys
 import os
-import coleta_pb2 as Coleta
+from  coleta import coleta_pb2 as Coleta
 
 CONTRACHEQUE = 'contracheque'
 INDENIZACOES = 'indenizações'
@@ -119,7 +119,9 @@ def cria_remuneracao(row,  categoria):
         if categoria == CONTRACHEQUE and value in [8,9,10,11]:
             remuneracao.valor = remuneracao.valor * (-1)
             remuneracao.natureza = Coleta.Remuneracao.Natureza.Value("D")
-		
+        if categoria == DIREITOS_EVENTUAIS and value == 5:
+            remuneracao.valor = format_value(row[value])
+            
         remu_array.remuneracao.append(remuneracao)
     return remu_array
 
@@ -162,4 +164,17 @@ def parse(file_names, chave_coleta):
     return folha
     #return list(employees.values())
 
-  
+def format_value(element):
+    # A value was found with incorrect formatting. (3,045.99 instead of 3045.99)
+    if isNaN(element):
+        return 0.0
+    if type(element) == str:
+        if "." in element and "," in element:
+            element = element.replace(".", "").replace(",", ".")
+        elif "," in element:
+            element = element.replace(",", ".")
+        elif "-" in element:
+            element = 0.0
+
+    return float(element)
+

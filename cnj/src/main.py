@@ -3,9 +3,9 @@ import sys
 import os
 import crawler
 import time
-import parser
+from parserr import parse
 import json
-import coleta_pb2 as Coleta
+from coleta import coleta_pb2 as Coleta, IDColeta
 from google.protobuf.timestamp_pb2 import Timestamp
 from google.protobuf.json_format import MessageToDict
 
@@ -47,23 +47,15 @@ repColetor = "https://github.com/dadosjusbr/coletores"
 # Main execution
 def main():
     #file_names = crawler.crawl(court, year, month, driver_path, output_path)
-    file_names = ['/home/joh/dadosjusbr/coleta-proto-temp/cnj/src/output/TJRJ-contracheque.xlsx','/home/joh/dadosjusbr/coleta-proto-temp/cnj/src/output/TJRJ-direitos-eventuais.xlsx',
-    '/home/joh/dadosjusbr/coleta-proto-temp/cnj/src/output/TJRJ-direitos-pessoais.xlsx', '/home/joh/dadosjusbr/coleta-proto-temp/cnj/src/output/TJRJ-indenizações.xlsx']
+    file_names = ['/home/joh/dadosjusbr/coleta-proto-temp/cnj/src/output_test/TJRJ-contracheque.xlsx','/home/joh/dadosjusbr/coleta-proto-temp/cnj/src/output_test/TJRJ-direitos-eventuais.xlsx',
+    '/home/joh/dadosjusbr/coleta-proto-temp/cnj/src/output_test/TJRJ-direitos-pessoais.xlsx', '/home/joh/dadosjusbr/coleta-proto-temp/cnj/src/output_test/TJRJ-indenizações.xlsx']
     coleta = Coleta.Coleta()
     coleta.chave_coleta = court.lower() + '/' + month + '/' + year
     folha = Coleta.FolhaDePagamento()
-    folha = parser.parse(file_names, coleta.chave_coleta)
-    
-    coleta = Coleta.Coleta()
-    coleta.chave_coleta = court.lower() + '/' + month + '/' + year
+    folha = parse(file_names, coleta.chave_coleta)
     coleta.orgao = court.lower()
     coleta.mes = int(month)
     coleta.ano = int(year)
-    
-    #now = time.time()
-    #seconds = int(now)
-    #nanos = int((now - seconds) * 10**9)
-    #timestamp = Timestamp(seconds=seconds, nanos=nanos)
     timestamp = Timestamp()
     timestamp.GetCurrentTime()
     coleta.timestamp_coleta.CopyFrom(timestamp)
