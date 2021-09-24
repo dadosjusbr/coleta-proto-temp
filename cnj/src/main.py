@@ -47,10 +47,10 @@ repColetor = "https://github.com/dadosjusbr/coletores"
 # Main execution
 def main():
     #file_names = crawler.crawl(court, year, month, driver_path, output_path)
-    file_names = ['/home/joh/dadosjusbr/coleta-proto-temp/cnj/src/output_test/TJRJ-contracheque.xlsx','/home/joh/dadosjusbr/coleta-proto-temp/cnj/src/output_test/TJRJ-direitos-eventuais.xlsx',
-    '/home/joh/dadosjusbr/coleta-proto-temp/cnj/src/output_test/TJRJ-direitos-pessoais.xlsx', '/home/joh/dadosjusbr/coleta-proto-temp/cnj/src/output_test/TJRJ-indenizações.xlsx']
+    file_names = ['/home/joh/dadosjusbr/coleta-proto-temp/cnj/src/output/TJRJ-contracheque.xlsx','/home/joh/dadosjusbr/coleta-proto-temp/cnj/src/output/TJRJ-direitos-eventuais.xlsx',
+    '/home/joh/dadosjusbr/coleta-proto-temp/cnj/src/output/TJRJ-direitos-pessoais.xlsx', '/home/joh/dadosjusbr/coleta-proto-temp/cnj/src/output/TJRJ-indenizações.xlsx']
     coleta = Coleta.Coleta()
-    coleta.chave_coleta = court.lower() + '/' + month + '/' + year
+    coleta.chave_coleta = IDColeta(court, month, year)
     folha = Coleta.FolhaDePagamento()
     folha = parse(file_names, coleta.chave_coleta)
     coleta.orgao = court.lower()
