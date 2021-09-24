@@ -10,7 +10,6 @@ from google.protobuf.timestamp_pb2 import Timestamp
 from google.protobuf.json_format import MessageToDict
 
 
-
 if('COURT' in os.environ):
     court = os.environ['COURT']
 else:
@@ -46,9 +45,7 @@ repColetor = "https://github.com/dadosjusbr/coletores"
 
 # Main execution
 def main():
-    #file_names = crawler.crawl(court, year, month, driver_path, output_path)
-    file_names = ['/home/joh/dadosjusbr/coleta-proto-temp/cnj/src/output/TJRJ-contracheque.xlsx','/home/joh/dadosjusbr/coleta-proto-temp/cnj/src/output/TJRJ-direitos-eventuais.xlsx',
-    '/home/joh/dadosjusbr/coleta-proto-temp/cnj/src/output/TJRJ-direitos-pessoais.xlsx', '/home/joh/dadosjusbr/coleta-proto-temp/cnj/src/output/TJRJ-indenizações.xlsx']
+    file_names = crawler.crawl(court, year, month, driver_path, output_path)
     coleta = Coleta.Coleta()
     coleta.chave_coleta = IDColeta(court, month, year)
     folha = Coleta.FolhaDePagamento()
@@ -70,10 +67,9 @@ def main():
     rc = Coleta.ResultadoColeta()
     rc.folha.CopyFrom(folha)
     rc.coleta.CopyFrom(coleta)
-    #print(MessageToJson(rc).decode("utf-8"))
-    rc_dict = MessageToDict(rc, preserving_proto_field_name=True, use_integers_for_enums= True)
-    print(rc_dict['coleta']['timestamp_coleta'])
-    print(json.dumps({'coleta': rc_dict['coleta'], 'folha': rc_dict['folha']}, ensure_ascii=False))
+    print(rc.SerializeToString())
+    #rc_dict = MessageToDict(rc, preserving_proto_field_name=True, use_integers_for_enums= True)
+    #print(json.dumps({'coleta': rc_dict['coleta'], 'folha': rc_dict['folha']}, ensure_ascii=False))
     
 
 if __name__ == '__main__':
